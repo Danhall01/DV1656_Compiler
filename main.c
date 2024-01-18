@@ -4,6 +4,7 @@ extern int   count;
 extern int   yylex(void);
 extern FILE* yyin;
 
+
 int main(int argc, char** argv)
 {
     // Reads from file if a file name is passed as an argument. Otherwise, reads from stdin.
