@@ -2,7 +2,7 @@ VERSION = std=c2x
 COMPILE_FLAGS = -g -O0 -Wall -Wextra
 TIDY_FLAGS =
 
-LEX_TARGET = main.lex
+LEX_TARGET = lexer.lex
 APP_NAME = app.out
 
 all: lex lex.yy.o
