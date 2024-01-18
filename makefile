@@ -1,19 +1,18 @@
 VERSION = std=c2x
-COMPILE_FLAGS = -g -O0 -Wall -Wextra -Werror
+COMPILE_FLAGS = -g -O0 -Wall -Wextra
 TIDY_FLAGS =
 
+LEX_TARGET = main.lex
 APP_NAME = app.out
 
-ALL_TARGETS = main.o
-TARGET_FILE = main.c
+all: lex lex.yy.o
+	clang $(COMPILE_FLAGS) -o $(APP_NAME) lex.yy.o
 
-all: format $(ALL_TARGETS)
-	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o
+lex:
+	flex $(LEX_TARGET)
 
-
-# Add each file like this and add to ALL_TARGETS list
-main.o: main.c
-	clang -c $(COMPILE_FLAGS) main.c
+lex.yy.o: lex.yy.c
+	clang -c $(COMPILE_FLAGS) lex.yy.c
 
 
 format:
@@ -21,5 +20,8 @@ format:
 
 tidy:
 	clang-tidy $(wildcard *.c) -checks=-*,clang-diagnostic-*,clang-analyzer-*,readability-*,bugprone-*
+
+run: all
+	./$(APP_NAME)
 clean:
-	rm *.o app.out
+	rm *.o lex.yy.c $(APP_NAME)
