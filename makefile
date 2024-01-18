@@ -1,3 +1,6 @@
+# Write the name of the compile target here, will be used in "make run"
+override COMPILE_TARGET ?=
+
 VERSION = std=c2x
 COMPILE_FLAGS = -g -O0 -Wall -Wextra
 COMPILE_FLAGS_EXTRA =
@@ -24,6 +27,6 @@ tidy:
 	clang-tidy $(wildcard *.c) -checks=$(TIDY_FLAGS)
 
 run: all
-	./$(APP_NAME)
+	./$(APP_NAME) $(COMPILE_TARGET)
 clean:
 	rm *.o lex.yy.c $(APP_NAME)
