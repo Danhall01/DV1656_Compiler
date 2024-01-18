@@ -15,7 +15,7 @@ all: compile
 	clang $(COMPILE_FLAGS) -o $(APP_NAME) $(wildcard *.o) $(COMPILE_FLAGS_EXTRA)
 
 compile: lex lex.yy.c
-	clang -c $(COMPILE_FLAGS) $(wildcard *.c)
+	clang -c $(COMPILE_FLAGS) $(wildcard *.c) $(COMPILE_FLAGS_EXTRA)
 
 lex:
 	flex $(LEX_TARGET)
