@@ -2,7 +2,7 @@
 %{
 int count = 0;
 %}
-
+%option noyywrap
 
 %%
 [A-Z] {printf("%s capital letter\n", yytext);
@@ -10,15 +10,3 @@ int count = 0;
 .	 {printf("%s not a capital letter\n", yytext);}
 \n {return 0;}
 %%
-
-
-int yywrap(){return 0;}
-int main(){
-
-yylex();
-printf("\nNumber of Capital letters "
-	"in the given input - %d\n", count);
-
-return 0;
-}
-

@@ -1,25 +1,27 @@
 VERSION = std=c2x
 COMPILE_FLAGS = -g -O0 -Wall -Wextra
-TIDY_FLAGS =
+COMPILE_FLAGS_EXTRA =
 
-LEX_TARGET = main.lex
+TIDY_FLAGS = -*,clang-diagnostic-*,clang-analyzer-*,readability-*,bugprone-*
+
+
+LEX_TARGET = lexer.lex
 APP_NAME = app.out
 
-all: lex lex.yy.o
-	clang $(COMPILE_FLAGS) -o $(APP_NAME) lex.yy.o
+all: compile
+	clang $(COMPILE_FLAGS) -o $(APP_NAME) $(wildcard *.o) $(COMPILE_FLAGS_EXTRA)
+
+compile: lex lex.yy.c
+	clang -c $(COMPILE_FLAGS) $(wildcard *.c)
 
 lex:
 	flex $(LEX_TARGET)
-
-lex.yy.o: lex.yy.c
-	clang -c $(COMPILE_FLAGS) lex.yy.c
-
 
 format:
 	clang-format $(wildcard *.c) -style=file --verbose
 
 tidy:
-	clang-tidy $(wildcard *.c) -checks=-*,clang-diagnostic-*,clang-analyzer-*,readability-*,bugprone-*
+	clang-tidy $(wildcard *.c) -checks=$(TIDY_FLAGS)
 
 run: all
 	./$(APP_NAME)
