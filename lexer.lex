@@ -1,5 +1,8 @@
 
 %{
+#include "parser.tab.h"
+#include "settings.h"
+#include "Node.h"
 int count = 0;
 %}
 %option noyywrap

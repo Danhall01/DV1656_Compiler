@@ -1,8 +1,13 @@
 #include <stdio.h>
 
+#include "parser.tab.h"
+#include "settings.h"
+
 extern int   count;
 extern int   yylex(void);
 extern FILE* yyin;
+extern Node *root;
+extern int yylineno;
 
 
 int main(int argc, char** argv)
