@@ -2,20 +2,26 @@
 %define parse.error verbose
 
 
-%{
+%code requires{
 #include <stdio.h>
-#define YYSTYPE double
 #include <math.h>
 #include "settings.h"
 %}
 
-%{
+%code{
 int yylex(void);
 void yyerror(const char* yymsgp);
 %}
 
+%union {
+  double val;
+  const char* str;
+}
+
 /* BISON Declarations */
-%token NUM
+%token <val> NUM
+%type <val> exp
+
 %left '-' '+'
 %left '*' '/'
 %left NEG     /* negation--unary minus */

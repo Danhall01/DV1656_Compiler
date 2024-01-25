@@ -5,9 +5,9 @@
 
 extern int   count;
 extern int   yylex(void);
-extern void  yyerror(const char* yymsgp);
 extern FILE* yyin;
-extern int   yylineno;
+extern Node *root;
+extern int yylineno;
 
 
 int main(int argc, char** argv)
