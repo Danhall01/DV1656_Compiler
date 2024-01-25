@@ -1,3 +1,4 @@
+%skeleton "lalr1.cc" 
 %defines
 %define parse.error verbose
 %define api.value.type variant
