@@ -4,10 +4,7 @@
 #include "settings.h"
 
 extern int   count;
-extern int   yylex(void);
 extern FILE* yyin;
-extern Node *root;
-extern int yylineno;
 
 
 int main(int argc, char** argv)
@@ -21,7 +18,14 @@ int main(int argc, char** argv)
             return 1;
         }
     }
-    yylex();
+    if (yyparse() == 0)
+    {
+
+    }
+    else
+    {
+        
+    }
     printf("\nNumber of Capital letters "
            "in the given input - %d\n",
            count);
