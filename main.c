@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-extern int   count;
 extern int   yylex(void);
 extern FILE* yyin;
 
@@ -17,9 +16,6 @@ int main(int argc, char** argv)
         }
     }
     yylex();
-    printf("\nNumber of Capital letters "
-           "in the given input - %d\n",
-           count);
-
+    fclose(yyin);
     return 0;
 }
