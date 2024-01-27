@@ -1,59 +1,78 @@
 %{
+#include "settings.h"
+#include "parser.tab.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 int lex_valid = 1;
 int lineno = 1;
 %}
 %option noyywrap
 
 %%
-"int" {if (lex_valid) printf("INT");}
-"boolean" {if (lex_valid) printf("BOOL");}
-"void" {if (lex_valid) printf("VOID");}
-"new" {if (lex_valid) printf("ALLOC");}
+"int" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("INT"); return INT;}
+"boolean" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("BOOL"); return BOOL;}
+"String" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("STRING"); return STRING;}
+"void" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("VOID"); return VOID;}
 
-"while" {if (lex_valid) printf("WHILE");}
-"if" {if (lex_valid) printf("IF");}
-"else" {if (lex_valid) printf("ELSE");}
+"main" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("MAIN"); return MAIN;}
+"new" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("ALLOC"); return NEW;}
+"this" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("THIS"); return THIS;}
+"System.out.println" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("PRINTLN"); return PRINTLN;}
+"length" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("LENGTH"); return LENGTH;}
 
-"class" {if (lex_valid) printf("CLASS");}
-"public" {if (lex_valid) printf("PUBLIC");}
-"static" {if (lex_valid) printf("STATIC");}
-"return" {if (lex_valid) printf("RET");}
+"while" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("WHILE"); return WHILE;}
+"if" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("IF"); return IF;}
+"else" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("ELSE"); return ELSE;}
 
-"=" {if (lex_valid) printf("OP_ASG");}
-"-" {if (lex_valid) printf("OP_SUB");}
-"+" {if (lex_valid) printf("OP_ADD");}
-"*" {if (lex_valid) printf("OP_MUL");}
-"/" {if (lex_valid) printf("OP_DIV");}
+"class" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("CLASS"); return CLASS;}
+"public" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("PUBLIC"); return PUBLIC;}
+"static" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("STATIC"); return STATIC;}
+"return" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("RET"); return RETURN;}
 
-"==" {if (lex_valid) printf("OP_EQ");}
-"!" {if (lex_valid) printf("OP_NOT");}
-"<" {if (lex_valid) printf("OP_L");}
-"<=" {if (lex_valid) printf("OP_LE");}
-">" {if (lex_valid) printf("OP_G");}
-">=" {if (lex_valid) printf("OP_GE");}
-"&&" {if (lex_valid) printf("OP_AND");}
-"||" {if (lex_valid) printf("OP_OR");}
+"=" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_ASG"); return '=';}
+"-" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_SUB"); return '-';}
+"+" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_ADD"); return '+';}
+"*" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_MUL"); return '*';}
+"/" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_DIV"); return '/';}
 
-[+0-9]+ {if (lex_valid) printf("INTEGER_T");}
-"true"|"false" {if (lex_valid) printf("BOOLEAN_T");}
+"!" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_NOT"); return '!';}
+"<" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_L"); return '<';}
+">" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_G"); return '>';}
 
-[a-zA-Z_][a-zA-Z0-9_\.]*"(" {if (lex_valid) printf("FUNC PAR_START ");}
-"(" {if (lex_valid) printf(" PAR_START ");}
-")" {if (lex_valid) printf(" PAR_END");}
+"==" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_EQ"); return EQUAL;}
+"<=" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_LE");}
+">=" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_GE");}
+"&&" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_AND"); return AND;}
+"||" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_OR"); return OR;}
 
-[a-zA-Z_][a-zA-Z0-9_]*"[]" {if (lex_valid) printf("ARRAY");}
-[a-zA-Z_][a-zA-Z0-9_]* {if (lex_valid) printf("VAR");}
+0|[1-9][0-9]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("INTEGER"); yylval.intval=atoi(yytext); return INTEGER_LITERAL;}
+"true" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("TRUE"); return TRUE;}
+"false" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("FALSE"); return FALSE;}
 
-"\." {if (lex_valid) printf(" CHAIN ");}
+"(" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("("); return '(';}
+")" {if (lex_valid && PRINT_LEXER_OUTPUT) printf(")"); return ')';}
+"{" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("{"); return '{';}
+"}" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("}"); return '}';}
+"[" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("["); return '[';}
+"]" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("]"); return ']';}
 
-"\t" {if (lex_valid) printf("\t");}
-"," {}
-"{"|"}" {}
-" " {if (lex_valid) printf(" ");}
-";" {if (lex_valid) printf(";");}
 
-"//"(.)+ {}
+"\." {if (lex_valid && PRINT_LEXER_OUTPUT) printf("."); return '.';}
+"," {if (lex_valid && PRINT_LEXER_OUTPUT) printf(","); return ',';}
+
+"\t" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("\t");}
+" " {if (lex_valid && PRINT_LEXER_OUTPUT) printf(" ");}
+";" {if (lex_valid && PRINT_LEXER_OUTPUT) printf(";"); return ';';}
+"\r" {}
+
+[a-zA-Z_][a-zA-Z0-9_]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("IDENTIFIER"); yyval.strval=yytext; return IDENTIFIER;}
+
+
+\n {if (lex_valid && PRINT_LEXER_OUTPUT) printf("\n"); ++lineno;}
+<<EOF>> {printf("\n%s\n", lex_valid ? "[+] Lexing finished successfully.":"[-] Lexer failed to parse file. (Se logs for details)"); return FEND;}
+
+
+"//"[^\n]* {}
 . {printf("\n[-] Error (line: %d) - lexical ('%s' is not recognized by the grammar.)", lineno, yytext); lex_valid = 0; }
-
-\n {if (lex_valid) printf("\n"); ++lineno;}
 %%
