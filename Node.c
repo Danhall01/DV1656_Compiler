@@ -9,7 +9,9 @@
 
 Node_s* initNodeTree(char* type, char* value, int32_t lineno)
 {
-    Node_s* node = (Node_s*) malloc(sizeof(Node_s));
+    Node_s* node = NULL;
+#ifdef PRINT_PARSER_TREE
+    node = (Node_s*) malloc(sizeof(Node_s));
     node->lineno = lineno;
     node->type   = type;
     node->value  = value;
@@ -22,11 +24,14 @@ Node_s* initNodeTree(char* type, char* value, int32_t lineno)
     }
     node->capacity = START_CAPACITY;
     node->size     = 0;
+#endif
     return node;
 }
 
 void addSubTree(Node_s node[static 1], Node_s newNode[static 1])
-{
+{   
+#ifdef PRINT_PARSER_TREE
+    if ((node == NULL) || (newNode == NULL)) return;
     if (node->size == node->capacity)
     {
         void* temp = realloc(node->children, node->capacity * 2);
@@ -39,6 +44,7 @@ void addSubTree(Node_s node[static 1], Node_s newNode[static 1])
         node->capacity *= 2;
     }
     node->children[node->size++] = newNode;
+#endif
 }
 
 
