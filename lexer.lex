@@ -6,8 +6,9 @@
 #include <string.h>
 int lex_valid = 1;
 int lineno = 1;
+extern int yylex(void);
 %}
-%option noyywrap
+%option yylineno noyywrap nounput batch noinput stack
 
 %%
 "int" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("INT"); return INT;}
@@ -66,11 +67,11 @@ int lineno = 1;
 ";" {if (lex_valid && PRINT_LEXER_OUTPUT) printf(";"); return ';';}
 "\r" {}
 
-[a-zA-Z_][a-zA-Z0-9_]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("IDENTIFIER"); yyval.strval=yytext; return IDENTIFIER;}
+[a-zA-Z_][a-zA-Z0-9_]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("IDENTIFIER"); yylval.strval=yytext; return IDENTIFIER;}
 
 
 \n {if (lex_valid && PRINT_LEXER_OUTPUT) printf("\n"); ++lineno;}
-<<EOF>> {printf("\n%s\n", lex_valid ? "[+] Lexing finished successfully.":"[-] Lexer failed to parse file. (Se logs for details)"); return FEND;}
+<<EOF>> {printf("\n%s\n", lex_valid ? "[+] Lexing finished successfully.":"[-] Lexer failed to parse file. (Se logs for details)"); return EOF;}
 
 
 "//"[^\n]* {}

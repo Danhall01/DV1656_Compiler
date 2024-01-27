@@ -11,15 +11,21 @@
 
 %code{
 Node_s* root;
-extern int yylineno
+extern int yylineno;
+extern int yylex(void);
+void yyerror (char const * s)  /* Called by yyparse on error */
+{
+  printf ("%s\n", s);
+}
 }
 
 %union {
   int intval;
   const char* strval;
+  Node_s* nodeval;
 }
 
-%token PUBLIC CLASS STATIC VOID MAIN STRING RETURN INT BOOL IF ELSE WHILE PRINTLN AND OR EQUAL LENGTH TRUE FALSE THIS NEW INTEGER_LITERAL IDENTIFIER FEND
+%token <intval> PUBLIC CLASS STATIC VOID MAIN STRING RETURN INT BOOL IF ELSE WHILE PRINTLN AND OR EQUAL LENGTH TRUE FALSE THIS NEW INTEGER_LITERAL IDENTIFIER
 
 %right then ELSE
 %right '='
@@ -28,7 +34,7 @@ extern int yylineno
 
 %start Goal
 
-%type <Node_s*> Identifier RecParamExp Operators Expression RecStatement Statement Type VarDeclaration RecParameter Parameters RecMethodBody MethodDeclaration RecVarDecl RecMethodDecl ClassDeclaration RecMain MainClass RecClassDecl Goal
+%type <nodeval> Identifier RecParamExp Operators Expression RecStatement Statement Type VarDeclaration RecParameter Parameters RecMethodBody MethodDeclaration RecVarDecl RecMethodDecl ClassDeclaration RecMain MainClass RecClassDecl Goal
 
 %%
 RecClassDecl:
@@ -37,13 +43,13 @@ RecClassDecl:
                                           addSubTree($$, $1); }
 ;
 Goal:     
-          MainClass RecClassDecl FEND { $$ = initNodeTree("ROOT", "", yylineno); 
+          MainClass RecClassDecl { $$ = initNodeTree("ROOT", "", yylineno); 
                                         addSubTree($$, $1);
                                         addSubTree($$, $2); }
 ;
 
 RecMain:
-          Statement         { $$ = $1 }
+          Statement         { $$ = $1; }
         | RecMain Statement { $$ = $2; 
                               addSubTree($$, $1); }
 ;
@@ -202,7 +208,9 @@ Expression:
                                                                     addSubTree($$, $3);
                                                                     addSubTree($$, $5);
                                                                     addSubTree($$, $6); }
-      | Operators INTEGER_LITERAL                                 { $$ = initNodeTree("INTEGER LITERAL", atoi(yylval.intval), yylineno);
+      | Operators INTEGER_LITERAL                                 { char buf[256];
+                                                                    snprintf(buf, 256, "%d", yylval.intval);
+                                                                    $$ = initNodeTree("INTEGER LITERAL", buf, yylineno);
                                                                     addSubTree($$, $1); }
       | Operators TRUE                                            { $$ = initNodeTree("TRUE", "", yylineno); 
                                                                     addSubTree($$, $1); }
@@ -228,11 +236,3 @@ Identifier:
 ;
 /* End of grammar */
 %%
-
-#include <stdio.h>
-
-yyerror (s)  /* Called by yyparse on error */
-     char *s;
-{
-  printf ("%s\n", s);
-}

@@ -4,7 +4,6 @@
 #include "settings.h"
 #include "Node.h"
 
-extern int   yylex(void);
 extern FILE* yyin;
 
 extern Node_s* root;
@@ -21,7 +20,8 @@ int main(int argc, char** argv)
             return 1;
         }
     }
-    yylex();
+    yyparse();
+    generateTree(root);
     fclose(yyin);
     return 0;
 }
