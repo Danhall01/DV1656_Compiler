@@ -8,7 +8,7 @@ int lex_valid = 1;
 int lineno = 1;
 extern int yylex(void);
 %}
-%option yylineno noyywrap nounput batch noinput stack
+%option yylineno noyywrap nounput batch noinput
 
 %%
 "int" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("INT"); return INT;}
