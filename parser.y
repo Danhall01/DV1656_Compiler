@@ -4,6 +4,9 @@
 %code requires{
 #include "settings.h"
 #include "Node.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 } 
 
 %code{
@@ -199,7 +202,7 @@ Expression:
                                                                     addSubTree($$, $3);
                                                                     addSubTree($$, $5);
                                                                     addSubTree($$, $6); }
-      | Operators INTEGER_LITERAL                                 { $$ = initNodeTree("INTEGER LITERAL", yylval.intval, yylineno);
+      | Operators INTEGER_LITERAL                                 { $$ = initNodeTree("INTEGER LITERAL", atoi(yylval.intval), yylineno);
                                                                     addSubTree($$, $1); }
       | Operators TRUE                                            { $$ = initNodeTree("TRUE", "", yylineno); 
                                                                     addSubTree($$, $1); }
