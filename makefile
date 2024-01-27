@@ -1,5 +1,6 @@
 # Write the name of the compile target here, will be used in "make run"
-override COMPILE_TARGET ?=
+override COMPILE_TARGET ?= test_files/lexical_errors/UnknownSymbol.java
+
 
 VERSION = std=c2x
 COMPILE_FLAGS = -g -O0 -Wall -Wextra
@@ -10,8 +11,8 @@ TIDY_FLAGS = -*,clang-diagnostic-*,clang-analyzer-*,readability-*,bugprone-*
 
 LEX_TARGET = lexer.lex
 BISON_TARGET = parser
-APP_NAME = app.out
 TREE_TARGET = tree
+APP_NAME = compiler
 
 all: compile
 	clang $(COMPILE_FLAGS) -o $(APP_NAME) $(wildcard *.o) $(COMPILE_FLAGS_EXTRA)

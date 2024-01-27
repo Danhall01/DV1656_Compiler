@@ -3,7 +3,7 @@
 #include "parser.tab.h"
 #include "settings.h"
 
-extern int   count;
+extern int   yylex(void);
 extern FILE* yyin;
 
 
@@ -18,17 +18,7 @@ int main(int argc, char** argv)
             return 1;
         }
     }
-    if (yyparse() == 0)
-    {
-
-    }
-    else
-    {
-        
-    }
-    printf("\nNumber of Capital letters "
-           "in the given input - %d\n",
-           count);
-
+    yylex();
+    fclose(yyin);
     return 0;
 }
