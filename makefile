@@ -10,16 +10,24 @@ TIDY_FLAGS = -*,clang-diagnostic-*,clang-analyzer-*,readability-*,bugprone-*
 
 
 LEX_TARGET = lexer.lex
+BISON_TARGET = parser
+TREE_TARGET = tree
 APP_NAME = compiler
 
 all: compile
 	clang $(COMPILE_FLAGS) -o $(APP_NAME) $(wildcard *.o) $(COMPILE_FLAGS_EXTRA)
 
-compile: lex lex.yy.c
+compile: lex lex.yy.c bison $(BISON_TARGET).tab.c
 	clang -c $(COMPILE_FLAGS) $(wildcard *.c) $(COMPILE_FLAGS_EXTRA)
 
 lex:
 	flex $(LEX_TARGET)
+
+bison:
+	bison $(BISON_TARGET).y
+
+tree: 
+	dot -Tpdf $(TREE_TARGET).dot -o$(TREE_TARGET).pdf
 
 format:
 	clang-format $(wildcard *.c) -style=file --verbose
@@ -30,4 +38,4 @@ tidy:
 run: all
 	./$(APP_NAME) $(COMPILE_TARGET)
 clean:
-	rm *.o lex.yy.c $(APP_NAME)
+	rm *.o $(BISON_TARGET).tab.c $(BISON_TARGET).tab.h lex.yy.c $(APP_NAME) tree.dot tree.pdf

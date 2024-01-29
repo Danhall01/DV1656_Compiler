@@ -1,5 +1,8 @@
 #include <stdio.h>
 
+#include "parser.tab.h"
+#include "settings.h"
+
 extern int   yylex(void);
 extern FILE* yyin;
 
