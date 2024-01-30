@@ -43,7 +43,7 @@ RecClassDecl:
                                           addSubTree($$, $1); }
 ;
 Goal:     
-          MainClass RecClassDecl { $$ = initNodeTree("ROOT", "", yylineno); 
+          MainClass RecClassDecl { $$ = root = initNodeTree("ROOT", "", yylineno); 
                                         addSubTree($$, $1);
                                         addSubTree($$, $2); }
 ;
@@ -208,9 +208,7 @@ Expression:
                                                                     addSubTree($$, $3);
                                                                     addSubTree($$, $5);
                                                                     addSubTree($$, $6); }
-      | Operators INTEGER_LITERAL                                 { char buf[256];
-                                                                    snprintf(buf, 256, "%d", yylval.intval);
-                                                                    $$ = initNodeTree("INTEGER LITERAL", buf, yylineno);
+      | Operators INTEGER_LITERAL                                 { $$ = initNodeTree("INTEGER LITERAL", yylval.strval, yylineno);
                                                                     addSubTree($$, $1); }
       | Operators TRUE                                            { $$ = initNodeTree("TRUE", "", yylineno); 
                                                                     addSubTree($$, $1); }

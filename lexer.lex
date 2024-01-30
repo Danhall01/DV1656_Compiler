@@ -47,7 +47,12 @@ extern int yylex(void);
 "&&" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_AND"); return AND;}
 "||" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("OP_OR"); return OR;}
 
-0|[1-9][0-9]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("INTEGER"); yylval.intval=atoi(yytext); return INTEGER_LITERAL;}
+0|[1-9][0-9]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("INTEGER");
+    char* str = malloc(strlen(yytext)+1);
+    strcpy(str, yytext);
+    yylval.strval=str; 
+    return INTEGER_LITERAL;}
+
 "true" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("TRUE"); return TRUE;}
 "false" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("FALSE"); return FALSE;}
 
@@ -67,7 +72,12 @@ extern int yylex(void);
 ";" {if (lex_valid && PRINT_LEXER_OUTPUT) printf(";"); return ';';}
 "\r" {}
 
-[a-zA-Z_][a-zA-Z0-9_]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("IDENTIFIER"); yylval.strval=yytext; return IDENTIFIER;}
+[a-zA-Z_][a-zA-Z0-9_]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("IDENTIFIER"); 
+    char* str = malloc(strlen(yytext)+1);
+    strcpy(str, yytext);
+    yylval.strval=str;
+    return IDENTIFIER;
+}
 
 
 \n {if (lex_valid && PRINT_LEXER_OUTPUT) printf("\n"); ++lineno;}
