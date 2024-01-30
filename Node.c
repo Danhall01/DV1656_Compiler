@@ -5,7 +5,6 @@
 #include <string.h>
 
 #define START_CAPACITY 16
-#define BUF_SIZE 1024
 
 Node_s* initNodeTree(const char* type, const char* value, int32_t lineno)
 {
@@ -66,38 +65,48 @@ static void generateTreeContent(Node_s node[static 1], int count[static 1], FILE
 {
     node->id = ++(*count);
 
-    char   writebuf[BUF_SIZE] = { '\0' };
-    size_t writtenSize;
-    if ((writtenSize = snprintf(writebuf,
-                                sizeof(writebuf) / sizeof(*writebuf),
-                                "n%d [label=\"%s:%s\"];\n",
-                                node->id,
-                                node->type,
-                                node->value))
-        < 0)
+    const char* labelFormat = "n%d [label=\"%s:%s\"];\n";
+    const char* nnFormat = "n%d -> n%d\n";
+
+    char*   writebuf = NULL;
+    int32_t writeSize = snprintf(NULL, 0, labelFormat, node->id, node->type, node->value);
+    if (writeSize < 0)
     {
         fprintf(stderr, "[-] Unable to generate tree (sprintf).");
         exit(1);
     }
-    fwrite(writebuf, sizeof(*writebuf), writtenSize, file);
+    writebuf = malloc(sizeof(char[writeSize]));
+
+    sprintf(writebuf, labelFormat, node->id, node->type, node->value);
+    fwrite(writebuf, sizeof(*writebuf), writeSize, file);
 
     for (uint32_t i = 0; i < node->size; ++i)
     {
         generateTreeContent(node->children[i], count, file);
 
-        memset(writebuf, 0, BUF_SIZE);
-        if ((writtenSize = snprintf(writebuf,
-                                    sizeof(writebuf) / sizeof(*writebuf),
-                                    "n%d -> n%d\n",
-                                    node->id,
-                                    node->children[i]->id))
-            < 0)
+        int32_t oldSize = writeSize;
+
+        writeSize = snprintf(NULL, 0, nnFormat, node->id, node->children[i]->id);
+        if (writeSize < 0)
         {
             fprintf(stderr, "[-] Unable to generate tree, recursion\n");
             exit(1);
         }
-        fwrite(writebuf, sizeof(*writebuf), writtenSize, file);
+
+        if (writeSize > oldSize)
+        {
+            writebuf = realloc(writebuf, writeSize);
+            if (writebuf == NULL)
+            {
+                fprintf(stderr, "[-] Failed to realloc memory.\n");
+                exit(1);
+            }
+        } 
+        memset(writebuf, 0, writeSize);
+        sprintf(writebuf, nnFormat, node->id, node->children[i]->id);
+        fwrite(writebuf, sizeof(*writebuf), writeSize, file);
     }
+    // free(writebuf);
 }
 void generateTree(Node_s node[static 1])
 {
