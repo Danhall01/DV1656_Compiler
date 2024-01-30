@@ -5,13 +5,18 @@
 #include <string.h>
 
 #define START_CAPACITY 16
-#define BUF_SIZE 256
+#define BUF_SIZE 1024
 
 Node_s* initNodeTree(const char* type, const char* value, int32_t lineno)
 {
     Node_s* node = NULL;
 #ifdef PRINT_PARSER_TREE
     node = (Node_s*) malloc(sizeof(Node_s));
+    if (node == NULL)
+    {
+        fprintf(stderr, "[-] Failed to allocate memory for node.\n");
+        exit(1);
+    }
     node->lineno = lineno;
     node->type   = type;
     node->value  = value;
@@ -28,20 +33,20 @@ Node_s* initNodeTree(const char* type, const char* value, int32_t lineno)
     return node;
 }
 
-void addSubTree(Node_s node[static 1], Node_s newNode[static 1])
+void addSubTree(Node_s node[static 1], Node_s* newNode)
 {   
 #ifdef PRINT_PARSER_TREE
-    if ((node == NULL) || (newNode == NULL)) return;
+    if (newNode == NULL) return;
     if (node->size == node->capacity)
     {
-        void* temp = realloc(node->children, node->capacity * 2);
+        node->capacity *= 2;
+        void* temp = realloc(node->children, sizeof(Node_s* [node->capacity]));
         if (temp == NULL)
         {
             fprintf(stderr, "[-] Out of memory.\n");
             exit(1);
         }
         node->children = temp;
-        node->capacity *= 2;
     }
     node->children[node->size++] = newNode;
 #endif
@@ -61,7 +66,7 @@ static void generateTreeContent(Node_s node[static 1], int count[static 1], FILE
 {
     node->id = ++(*count);
 
-    /*char   writebuf[BUF_SIZE] = { '\0' };
+    char   writebuf[BUF_SIZE] = { '\0' };
     size_t writtenSize;
     if ((writtenSize = snprintf(writebuf,
                                 sizeof(writebuf) / sizeof(*writebuf),
@@ -92,7 +97,7 @@ static void generateTreeContent(Node_s node[static 1], int count[static 1], FILE
             exit(1);
         }
         fwrite(writebuf, sizeof(*writebuf), writtenSize, file);
-    }*/
+    }
 }
 void generateTree(Node_s node[static 1])
 {
