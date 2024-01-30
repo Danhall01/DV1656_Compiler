@@ -14,11 +14,20 @@ BISON_TARGET = parser
 TREE_TARGET = tree
 APP_NAME = compiler
 
-all: compile
-	clang $(COMPILE_FLAGS) -o $(APP_NAME) $(wildcard *.o) $(COMPILE_FLAGS_EXTRA)
+all: compile lex.o node.o parser.o main.o
+	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)
 
 compile: lex lex.yy.c bison $(BISON_TARGET).tab.c
-	clang -c $(COMPILE_FLAGS) $(wildcard *.c) $(COMPILE_FLAGS_EXTRA)
+	
+main.o:
+	clang -c $(COMPILE_FLAGS) main.c $(COMPILE_FLAGS_EXTRA)
+lex.o:
+	clang -c $(COMPILE_FLAGS) lex.yy.c $(COMPILE_FLAGS_EXTRA)
+node.o:
+	clang -c $(COMPILE_FLAGS) Node.c $(COMPILE_FLAGS_EXTRA)
+parser.o:
+	clang -c $(COMPILE_FLAGS) $(BISON_TARGET).tab.c $(COMPILE_FLAGS_EXTRA)
+
 
 lex:
 	flex $(LEX_TARGET)
@@ -26,7 +35,7 @@ lex:
 bison:
 	bison $(BISON_TARGET).y
 
-tree: 
+tree: run
 	dot -Tpdf $(TREE_TARGET).dot -o$(TREE_TARGET).pdf
 
 format:
