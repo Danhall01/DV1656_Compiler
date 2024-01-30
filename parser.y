@@ -215,8 +215,8 @@ Expression:
                                                                     addSubTree($$, $4); }
       | NEW Identifier '(' ')'                                    { $$ = initNodeTree("CLASS INSTANTIATION", "", yylineno); 
                                                                     addSubTree($$, $2); }
-      //| '!' Expression                                            { $$ = initNodeTree("NEGATION", "", yylineno); 
-      //                                                              addSubTree($$, $2); }
+      | '!' Expression                                            { $$ = initNodeTree("NEGATION", "", yylineno); 
+                                                                    addSubTree($$, $2); }
       | '(' Expression ')'                                        { $$ = initNodeTree("PARENTHESES", "", yylineno); 
                                                                     addSubTree($$, $2); }
 ;
