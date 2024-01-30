@@ -32,10 +32,12 @@ void yyerror (char const * s)  /* Called by yyparse on error */
 %left OR
 %left AND
 %left EQUAL
-%left '>' '<'
+%left '>' '<' 
+%left operands
 %left '-' '+'
 %left '*' '/'
 %left '!'
+%left '.' '['
 
 %start Goal
 
@@ -188,7 +190,7 @@ Operator:
       | '/'    { $$ = initNodeTree("SUBDIVISION", "", yylineno); }
 ;
 Expression:
-        Expression Operator Expression                            { $$ = $2;
+        Expression Operator Expression            %prec operands  { $$ = $2;
                                                                     addSubTree($$, $1);
                                                                     addSubTree($$, $3); }
       | Expression '[' Expression ']'                             { $$ = initNodeTree("INDEXATION", "", yylineno); 
