@@ -32,25 +32,30 @@ void yyerror (char const * s)  /* Called by yyparse on error */
 %left OR
 %left AND
 %left EQUAL
-%left '>' '<' 
-%left operands
+%left '>' '<'
 %left '-' '+'
 %left '*' '/'
 %left '!'
 %left '.' '['
+%left '('
 
 %start Goal
 
-%type <nodeval> Identifier RecParamExp Operator Expression RecStatement Statement Type VarDeclaration RecParameter Parameters RecMethodBody MethodDeclaration RecVarDecl RecMethodDecl ClassDeclaration RecMain MainClass RecClassDecl Goal
+%type <nodeval> Identifier ParametersExp RecParamExp Operator Expression RecStatement Statement Type VarDeclaration RecParameter Parameters RecMethodBody MethodDeclaration RecVarDecl RecMethodDecl ClassDeclaration RecMain MainClass RecClassDecl Goal VariableDeclarations MethodDeclarations Classes
 
 %%
 RecClassDecl:
-          /* empty */                   { $$ = NULL; }
-        | RecClassDecl ClassDeclaration { $$ = $2; 
+          ClassDeclaration              { $$ = initNodeTree("CLASSES", "", yylineno); 
                                           addSubTree($$, $1); }
+        | RecClassDecl ClassDeclaration { $$ = $1; 
+                                          addSubTree($$, $2); }
+;
+Classes:
+          /* empty */                   { $$ = NULL; }
+        | RecClassDecl                  { $$ = $1; }
 ;
 Goal:     
-          MainClass RecClassDecl { $$ = root = initNodeTree("ROOT", "", yylineno); 
+          MainClass Classes { $$ = root = initNodeTree("ROOT", "", yylineno); 
                                         addSubTree($$, $1);
                                         addSubTree($$, $2); }
 ;
@@ -74,20 +79,30 @@ MainClass:
 ;
 
 RecVarDecl:
-          /* empty */               { $$ = NULL; }
-        | RecVarDecl VarDeclaration { $$ = $2; 
-                                    addSubTree($$, $1); }
+          VarDeclaration            { $$ = initNodeTree("VARIABLES", "", yylineno); 
+                                      addSubTree($$, $1); }
+        | RecVarDecl VarDeclaration { $$ = $1; 
+                                      addSubTree($$, $2); }
+;
+VariableDeclarations:
+          /* empty */ { $$ = NULL; }
+        | RecVarDecl  { $$ = $1; }
 ;
 RecMethodDecl:
-          /* empty */                     { $$ = NULL; }
-        | RecMethodDecl MethodDeclaration { $$ = $2; 
+          MethodDeclaration               { $$ = initNodeTree("METHODS", "", yylineno); 
                                             addSubTree($$, $1); }
+        | RecMethodDecl MethodDeclaration { $$ = $1; 
+                                            addSubTree($$, $2); }
+;
+MethodDeclarations:
+          /* empty */   { $$ = NULL; }
+        | RecMethodDecl { $$ = $1; }
 ;
 ClassDeclaration:
           CLASS Identifier
           '{' 
-              RecVarDecl
-              RecMethodDecl
+              VariableDeclarations
+              MethodDeclarations
           '}'                 { $$ = initNodeTree("CLASS DECLARATION", "", yylineno); 
                                 addSubTree($$, $2);
                                 addSubTree($$, $4);
@@ -95,26 +110,26 @@ ClassDeclaration:
 ;
 
 RecParameter:
-          /* empty */                       { $$ = NULL; }
-        | RecParameter ',' Type Identifier  { $$ = initNodeTree("REC PARAMETER", "", yylineno); 
-                                              addSubTree($$, $1);
-                                              addSubTree($$, $3);
-                                              addSubTree($$, $4); }
+          Type Identifier                   { $$ = initNodeTree("PARAMETERS", "", yylineno); 
+                                              Node_s* node = initNodeTree("PARAMETER", "", yylineno);
+                                              addSubTree(node, $1);
+                                              addSubTree(node, $2);
+                                              addSubTree($$, node); }
+        | RecParameter ',' Type Identifier  { $$ = $1;
+                                              Node_s* node = initNodeTree("PARAMETER", "", yylineno); 
+                                              addSubTree(node, $3);
+                                              addSubTree(node, $4);
+                                              addSubTree($$, node); }
 ;
 Parameters:
-          /* empty */                   { $$ = NULL; }
-        | Type Identifier RecParameter  { $$ = initNodeTree("METHOD PARAMETER", "", yylineno); 
-                                          addSubTree($$, $1);
-                                          addSubTree($$, $2);
-                                          addSubTree($$, $3); }
+          /* empty */     { $$ = NULL; }
+        |  RecParameter   { $$ = $1; }
 ;
 RecMethodBody:
-          /* empty */                   { $$ = NULL; }
-        | RecMethodBody VarDeclaration  { $$ = initNodeTree("METHOD BODY", "", yylineno); 
-                                          addSubTree($$, $1);
+          /* empty */                   { $$ = initNodeTree("METHOD BODY", "", yylineno); }
+        | RecMethodBody VarDeclaration  { $$ = $1; 
                                           addSubTree($$, $2); }
-        | RecMethodBody Statement       { $$ = initNodeTree("METHOD BODY", "", yylineno); 
-                                          addSubTree($$, $1);
+        | RecMethodBody Statement       { $$ = $1; 
                                           addSubTree($$, $2); }
 ;
 MethodDeclaration:
@@ -149,8 +164,7 @@ RecStatement:
                                     addSubTree($$, $1); }
 ;
 Statement:
-          '{' RecStatement '}'                                    { $$ = initNodeTree("CODE BLOCK", "", yylineno); 
-                                                                    addSubTree($$, $2); }
+          '{' RecStatement '}'                                    { $$ = $2; }
         | IF '(' Expression ')' Statement              %prec then { $$ = initNodeTree("IF STATEMENT OPEN", "", yylineno); 
                                                                     addSubTree($$, $3);
                                                                     addSubTree($$, $5); }
@@ -173,24 +187,41 @@ Statement:
 ;
 
 RecParamExp:
-        /* empty */                 { $$ = NULL; }
-      | RecParamExp ',' Expression  { $$ = initNodeTree("EXP REC PARAM", "", yylineno); 
-                                      addSubTree($$, $1);
-                                      addSubTree($$, $3); }
+          Expression                    { $$ = initNodeTree("INPUT PARAMETERS", "", yylineno); 
+                                          addSubTree($$, $1); }
+        | RecParamExp ',' Expression   { $$ = $1;
+                                          addSubTree($$, $3); }
 ;
-Operator:
-        AND    { $$ = initNodeTree("AND", "", yylineno); }
-      | OR     { $$ = initNodeTree("OR", "", yylineno); }
-      | '<'    { $$ = initNodeTree("LESS THAN", "", yylineno); }
-      | '>'    { $$ = initNodeTree("GREATER THAN", "", yylineno); }
-      | EQUAL  { $$ = initNodeTree("EQUALITY", "", yylineno); }
-      | '+'    { $$ = initNodeTree("ADDITION", "", yylineno); }
-      | '-'    { $$ = initNodeTree("SUBTRACTION", "", yylineno); }
-      | '*'    { $$ = initNodeTree("MULTIPLICATION", "", yylineno); }
-      | '/'    { $$ = initNodeTree("SUBDIVISION", "", yylineno); }
+ParametersExp:
+          /* empty */     { $$ = NULL; }
+        |  RecParamExp  { $$ = $1; }
 ;
 Expression:
-        Expression Operator Expression            %prec operands  { $$ = $2;
+        Expression AND Expression                                 { $$ = initNodeTree("AND", "", yylineno);
+                                                                    addSubTree($$, $1);
+                                                                    addSubTree($$, $3); }
+      | Expression OR Expression                                  { $$ = initNodeTree("OR", "", yylineno);
+                                                                    addSubTree($$, $1);
+                                                                    addSubTree($$, $3); }
+      | Expression '<' Expression                                 { $$ = initNodeTree("LESS THAN", "", yylineno);
+                                                                    addSubTree($$, $1);
+                                                                    addSubTree($$, $3); }
+      | Expression '>' Expression                                 { $$ = initNodeTree("GREATER THAN", "", yylineno);
+                                                                    addSubTree($$, $1);
+                                                                    addSubTree($$, $3); }
+      | Expression EQUAL Expression                               { $$ = initNodeTree("EQUAL", "", yylineno);
+                                                                    addSubTree($$, $1);
+                                                                    addSubTree($$, $3); }
+      | Expression '+' Expression                                 { $$ = initNodeTree("ADDITION", "", yylineno);
+                                                                    addSubTree($$, $1);
+                                                                    addSubTree($$, $3); }
+      | Expression '-' Expression                                 { $$ = initNodeTree("SUBTRACTION", "", yylineno);
+                                                                    addSubTree($$, $1);
+                                                                    addSubTree($$, $3); }
+      | Expression '*' Expression                                 { $$ = initNodeTree("MULTIPLICATION", "", yylineno);
+                                                                    addSubTree($$, $1);
+                                                                    addSubTree($$, $3); }
+      | Expression '/' Expression                                 { $$ = initNodeTree("DIVISION", "", yylineno);
                                                                     addSubTree($$, $1);
                                                                     addSubTree($$, $3); }
       | Expression '[' Expression ']'                             { $$ = initNodeTree("INDEXATION", "", yylineno); 
@@ -198,14 +229,11 @@ Expression:
                                                                     addSubTree($$, $3); }
       | Expression '.' LENGTH                                     { $$ = initNodeTree("LENGTH", "", yylineno); 
                                                                     addSubTree($$, $1); }
-      | Expression '.' Identifier '(' ')'                         { $$ = initNodeTree("FUNCTION CALL", "", yylineno); 
-                                                                    addSubTree($$, $1);
-                                                                    addSubTree($$, $3); }
-      | Expression '.' Identifier '(' Expression RecParamExp ')'  { $$ = initNodeTree("FUNCTION CALL", "", yylineno); 
-                                                                    addSubTree($$, $1);
-                                                                    addSubTree($$, $3);
-                                                                    addSubTree($$, $5);
-                                                                    addSubTree($$, $6); }
+      | Expression '.' Identifier '(' ParametersExp ')'           { $$ = $1;
+                                                                    Node_s* node = initNodeTree("FUNCTION CALL", "", yylineno);
+                                                                    addSubTree(node, $3);
+                                                                    addSubTree(node, $5);
+                                                                    addSubTree($$, node); }
       | INTEGER_LITERAL                                           { $$ = initNodeTree("INTEGER LITERAL", yylval.strval, yylineno); }
       | TRUE                                                      { $$ = initNodeTree("TRUE", "", yylineno); }
       | FALSE                                                     { $$ = initNodeTree("FALSE", "", yylineno); }
@@ -217,8 +245,7 @@ Expression:
                                                                     addSubTree($$, $2); }
       | '!' Expression                                            { $$ = initNodeTree("NEGATION", "", yylineno); 
                                                                     addSubTree($$, $2); }
-      | '(' Expression ')'                                        { $$ = initNodeTree("PARENTHESES", "", yylineno); 
-                                                                    addSubTree($$, $2); }
+      | '(' Expression ')'                                        { $$ = $2; }
 ;
 
 Identifier:
