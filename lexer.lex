@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 int lex_valid = 1;
-int lineno = 1;
+extern int yylineno;
 extern int yylex(void);
 %}
 %option yylineno noyywrap nounput batch noinput
@@ -80,10 +80,10 @@ extern int yylex(void);
 }
 
 
-\n {if (lex_valid && PRINT_LEXER_OUTPUT) printf("\n"); ++lineno;}
+\n {if (lex_valid && PRINT_LEXER_OUTPUT) printf("\n");}
 <<EOF>> {printf("\n%s\n", lex_valid ? "[+] Lexing finished successfully.":"[-] Lexer failed to parse file. (Se logs for details)"); return EOF;}
 
 
 "//"[^\n]* {}
-. {printf("\n[-] Error (line: %d) - lexical ('%s' is not recognized by the grammar.)", lineno, yytext); lex_valid = 0; }
+. {printf("\n[-] Error (line: %d) - lexical ('%s' is not recognized by the grammar.)", yylineno, yytext); lex_valid = 0; }
 %%
