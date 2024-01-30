@@ -41,7 +41,8 @@ void yyerror (char const * s)  /* Called by yyparse on error */
 
 %start Goal
 
-%type <nodeval> Identifier ParametersExp RecParamExp Operator Expression RecStatement Statement Type VarDeclaration RecParameter Parameters RecMethodBody MethodDeclaration RecVarDecl RecMethodDecl ClassDeclaration RecMain MainClass RecClassDecl Goal VariableDeclarations MethodDeclarations Classes
+%type <nodeval> ParametersExp RecParamExp Expression RecStatement Statement VarDeclaration RecParameter Parameters RecMethodBody MethodDeclaration RecVarDecl RecMethodDecl ClassDeclaration RecMain MainClass RecClassDecl Goal VariableDeclarations MethodDeclarations Classes
+%type <strval> Identifier Type
 
 %%
 RecClassDecl:
@@ -72,9 +73,8 @@ MainClass:
             '{'  
               RecMain 
             '}' 
-          '}'                                                           { $$ = initNodeTree("MAIN CLASS", "", yylineno); 
-                                                                          addSubTree($$, $3);
-                                                                          addSubTree($$, $13);
+          '}'                                                           { $$ = initNodeTree("MAIN CLASS", $3, yylineno); 
+                                                                          addSubTree($$, initNodeTree("INPUT", $13, yylineno));
                                                                           addSubTree($$, $16); }
 ;
 
@@ -103,22 +103,17 @@ ClassDeclaration:
           '{' 
               VariableDeclarations
               MethodDeclarations
-          '}'                 { $$ = initNodeTree("CLASS DECLARATION", "", yylineno); 
-                                addSubTree($$, $2);
+          '}'                 { $$ = initNodeTree("CLASS DECLARATION", $2, yylineno); 
                                 addSubTree($$, $4);
                                 addSubTree($$, $5); }
 ;
 
 RecParameter:
           Type Identifier                   { $$ = initNodeTree("PARAMETERS", "", yylineno); 
-                                              Node_s* node = initNodeTree("PARAMETER", "", yylineno);
-                                              addSubTree(node, $1);
-                                              addSubTree(node, $2);
+                                              Node_s* node = initNodeTree($2, $1, yylineno);
                                               addSubTree($$, node); }
         | RecParameter ',' Type Identifier  { $$ = $1;
-                                              Node_s* node = initNodeTree("PARAMETER", "", yylineno); 
-                                              addSubTree(node, $3);
-                                              addSubTree(node, $4);
+                                              Node_s* node = initNodeTree($4, $3, yylineno); 
                                               addSubTree($$, node); }
 ;
 Parameters:
@@ -137,24 +132,24 @@ MethodDeclaration:
           '{'
             RecMethodBody
             RETURN Expression ';'
-          '}'                                       { $$ = initNodeTree("METHOD DECLARATION", "", yylineno); 
-                                                      addSubTree($$, $2);
-                                                      addSubTree($$, $3);
+          '}'                                       { $$ = initNodeTree("METHOD DECLARATION", $3, yylineno); 
+                                                      addSubTree($$, initNodeTree("RETURN TYPE", $2, yylineno));
                                                       addSubTree($$, $5);
                                                       addSubTree($$, $8);
-                                                      addSubTree($$, $10); }
+                                                      Node_s* node = initNodeTree("RETURN EXPRESSION", "", yylineno);
+                                                      addSubTree(node, $10);
+                                                      addSubTree($$, node); }
 ;
 
 VarDeclaration:
-          Type Identifier ';' { $$ = initNodeTree("VARIABLE DECLARATION", "", yylineno); 
-                                addSubTree($$, $1);
-                                addSubTree($$, $2); }
+          Type Identifier ';' { $$ = initNodeTree("VARIABLE DECLARATION", $2, yylineno);
+                                addSubTree($$, initNodeTree("TYPE", $1, yylineno)); }
 ;
 
 Type:
-          INT '[' ']' { $$ = initNodeTree("INTEGER ARRAY", "", yylineno); }
-        | BOOL        { $$ = initNodeTree("BOOLEAN", "", yylineno); }
-        | INT         { $$ = initNodeTree("INTEGER", "", yylineno); }
+          INT '[' ']' { $$ = "INTEGER ARRAY"; }
+        | BOOL        { $$ = "BOOLEAN"; }
+        | INT         { $$ = "INTEGER"; }
         | Identifier  { $$ = $1; }
 ;
 
@@ -177,11 +172,9 @@ Statement:
                                                                     addSubTree($$, $5); }
         | PRINTLN '(' Expression ')' ';'                          { $$ = initNodeTree("PRINT LINE", "", yylineno); 
                                                                     addSubTree($$, $3); }
-        | Identifier '=' Expression ';'                           { $$ = initNodeTree("ASSIGN", "", yylineno); 
-                                                                    addSubTree($$, $1);
+        | Identifier '=' Expression ';'                           { $$ = initNodeTree("ASSIGN", $1, yylineno); 
                                                                     addSubTree($$, $3); }
-        | Identifier '[' Expression ']' '=' Expression ';'        { $$ = initNodeTree("SET AS AT INDEX", "", yylineno); 
-                                                                    addSubTree($$, $1);
+        | Identifier '[' Expression ']' '=' Expression ';'        { $$ = initNodeTree("ASSIGN INDEX", $1, yylineno); 
                                                                     addSubTree($$, $3);
                                                                     addSubTree($$, $6); }
 ;
@@ -230,26 +223,24 @@ Expression:
       | Expression '.' LENGTH                                     { $$ = initNodeTree("LENGTH", "", yylineno); 
                                                                     addSubTree($$, $1); }
       | Expression '.' Identifier '(' ParametersExp ')'           { $$ = $1;
-                                                                    Node_s* node = initNodeTree("FUNCTION CALL", "", yylineno);
-                                                                    addSubTree(node, $3);
+                                                                    Node_s* node = initNodeTree("FUNCTION CALL", $3, yylineno);
                                                                     addSubTree(node, $5);
                                                                     addSubTree($$, node); }
-      | INTEGER_LITERAL                                           { $$ = initNodeTree("INTEGER LITERAL", yylval.strval, yylineno); }
+      | INTEGER_LITERAL                                           { $$ = initNodeTree("", yylval.strval, yylineno); }
       | TRUE                                                      { $$ = initNodeTree("TRUE", "", yylineno); }
       | FALSE                                                     { $$ = initNodeTree("FALSE", "", yylineno); }
-      | Identifier                                                { $$ = $1; }
+      | Identifier                                                { $$ = initNodeTree("", $1, yylineno); }
       | THIS                                                      { $$ = initNodeTree("THIS", "", yylineno); }
       | NEW INT '[' Expression ']'                                { $$ = initNodeTree("ARRAY INSTANTIATION", "", yylineno); 
                                                                     addSubTree($$, $4); }
-      | NEW Identifier '(' ')'                                    { $$ = initNodeTree("CLASS INSTANTIATION", "", yylineno); 
-                                                                    addSubTree($$, $2); }
+      | NEW Identifier '(' ')'                                    { $$ = initNodeTree("CLASS INSTANTIATION", $2, yylineno); }
       | '!' Expression                                            { $$ = initNodeTree("NEGATION", "", yylineno); 
                                                                     addSubTree($$, $2); }
       | '(' Expression ')'                                        { $$ = $2; }
 ;
 
 Identifier:
-      IDENTIFIER { $$ = initNodeTree("IDENTIFIER", yylval.strval, yylineno); }
+      IDENTIFIER { $$ = yylval.strval; }
 ;
 /* End of grammar */
 %%
