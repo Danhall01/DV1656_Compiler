@@ -33,13 +33,14 @@ Node_s* initNodeTree(const char* type, const char* value, int32_t lineno)
 }
 
 void addSubTree(Node_s node[static 1], Node_s* newNode)
-{   
+{
 #ifdef PRINT_PARSER_TREE
-    if (newNode == NULL) return;
+    if (newNode == NULL)
+        return;
     if (node->size == node->capacity)
     {
         node->capacity *= 2;
-        void* temp = realloc(node->children, sizeof(Node_s* [node->capacity]));
+        void* temp = realloc(node->children, sizeof(Node_s * [node->capacity]));
         if (temp == NULL)
         {
             fprintf(stderr, "[-] Out of memory.\n");
@@ -66,9 +67,9 @@ static void generateTreeContent(Node_s node[static 1], int count[static 1], FILE
     node->id = ++(*count);
 
     const char* labelFormat = "n%d [label=\"%s:%s\"];\n";
-    const char* nnFormat = "n%d -> n%d\n";
+    const char* nnFormat    = "n%d -> n%d\n";
 
-    char*   writebuf = NULL;
+    char*   writebuf  = NULL;
     int32_t writeSize = snprintf(NULL, 0, labelFormat, node->id, node->type, node->value);
     if (writeSize < 0)
     {
@@ -101,12 +102,12 @@ static void generateTreeContent(Node_s node[static 1], int count[static 1], FILE
                 fprintf(stderr, "[-] Failed to realloc memory.\n");
                 exit(1);
             }
-        } 
+        }
         memset(writebuf, 0, writeSize);
         sprintf(writebuf, nnFormat, node->id, node->children[i]->id);
         fwrite(writebuf, sizeof(*writebuf), writeSize, file);
     }
-    // free(writebuf);
+    free(writebuf);
 }
 void generateTree(Node_s node[static 1])
 {
