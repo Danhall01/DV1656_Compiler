@@ -4,8 +4,8 @@
 #include "settings.h"
 #include "Node.h"
 
-extern FILE* yyin;
-
+extern FILE*   yyin;
+extern int     lex_valid;
 extern Node_s* root;
 
 
@@ -21,6 +21,8 @@ int main(int argc, char** argv)
         }
     }
     yyparse();
+    if (!lex_valid)
+        return 1;
     generateTree(root);
     fclose(yyin);
     return 0;

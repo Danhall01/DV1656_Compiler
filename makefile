@@ -1,5 +1,5 @@
 # Write the name of the compile target here, will be used in "make run"
-override COMPILE_TARGET ?= test_files/tree_validation/OperatorPriority.java
+override COMPILE_TARGET ?= test_files/lexical_errors/UnknownSymbol.java
 
 
 VERSION = std=c2x
@@ -18,7 +18,7 @@ all: compile lex.o node.o parser.o main.o
 	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)
 
 compile: lex lex.yy.c bison $(BISON_TARGET).tab.c
-	
+
 main.o:
 	clang -c $(COMPILE_FLAGS) main.c $(COMPILE_FLAGS_EXTRA)
 lex.o:

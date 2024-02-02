@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 int lex_valid = 1;
+int errorl = 0;
 extern int yylineno;
 extern int yylex(void);
 %}
@@ -50,7 +51,7 @@ extern int yylex(void);
 0|[1-9][0-9]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("INTEGER");
     char* str = malloc(strlen(yytext)+1);
     strcpy(str, yytext);
-    yylval.strval=str; 
+    yylval.strval=str;
     return INTEGER_LITERAL;}
 
 "true" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("TRUE"); return TRUE;}
@@ -72,7 +73,7 @@ extern int yylex(void);
 ";" {if (lex_valid && PRINT_LEXER_OUTPUT) printf(";"); return ';';}
 "\r" {}
 
-[a-zA-Z_][a-zA-Z0-9_]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("IDENTIFIER"); 
+[a-zA-Z_][a-zA-Z0-9_]* {if (lex_valid && PRINT_LEXER_OUTPUT) printf("IDENTIFIER");
     char* str = malloc(strlen(yytext)+1);
     strcpy(str, yytext);
     yylval.strval=str;
@@ -85,5 +86,22 @@ extern int yylex(void);
 
 
 "//"[^\n]* {}
-. {printf("\n[-] Error (line: %d) - lexical ('%s' is not recognized by the grammar.)", yylineno, yytext); lex_valid = 0; }
+. {if (errorl != yylineno) fprintf(stderr, "[-] Error (Line %d): lexical ('%s' symbol is not recognized by the grammar)\n", yylineno, yytext); errorl = yylineno; lex_valid = 0;}
+[a-zA-Z_][^()\[\] \n\t]*[a-zA-Z0-9_]+ {
+    int i = 0;
+    while(1)
+    {
+        ++i;
+        if ((yytext[i] < 'Z' && yytext[i] > 'A') || (yytext[i] < '9' && yytext[i] > '0') || (yytext[i] == '_'))
+            continue;
+        if (yytext[i] < 'z' && yytext[i] > 'a')
+            continue;
+        break;
+    }
+    if (errorl != yylineno)
+        fprintf(stderr, "[-] Error (Line %d): lexical ('%c'' symbol is not recognized by the grammar)\n", yylineno, yytext[i]);
+    errorl = yylineno;
+    lex_valid = 0;
+}
+[^a-zA-Z_( "][a-zA-Z_0-9]* {fprintf(stderr, "[-] Error (Line %d): lexical ('%s' is invalid identifier)\n", yylineno, yytext); errorl = yylineno; lex_valid = 0; return IDENTIFIER;}
 %%
