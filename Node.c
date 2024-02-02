@@ -93,7 +93,7 @@ static void generateTreeContent(Node_s node[static 1], int count[static 1], FILE
             exit(1);
         }
 
-        if (writeSize > bufCapacity)
+        if (((size_t)writeSize) > bufCapacity)
         {
             bufCapacity = writeSize * 2;
             writebuf    = realloc(writebuf, bufCapacity);
