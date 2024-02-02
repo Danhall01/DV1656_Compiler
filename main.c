@@ -22,6 +22,8 @@ int main(int argc, char** argv)
     }
     if (yyparse() != 0 || !lex_valid)
         return 1;
+    else
+        printf("[+] Lexing finished successfully.\n");
     generateTree(root);
     fclose(yyin);
     return 0;
