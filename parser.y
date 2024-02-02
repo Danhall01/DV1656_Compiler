@@ -13,7 +13,6 @@
 Node_s* root;
 extern int yylineno;
 extern int lex_valid;
-int syntax_valid = 1;
 extern int yylex(void);
 void yyerror (char const * s)  /* Called by yyparse on error */
 {
