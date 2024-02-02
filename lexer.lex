@@ -87,14 +87,14 @@ extern int yylex(void);
 
 "//"[^\n]* {}
 . {if (errorl != yylineno) fprintf(stderr, "[-] \t@error at line %d: lexical ('%s' symbol is not recognized by the grammar)\n", yylineno, yytext); errorl = yylineno; lex_valid = 0;}
-[a-zA-Z_][^()\[\] \n\t\.]*[a-zA-Z0-9_]+ {
+[a-zA-Z_][^()\[\] \n\t\.=/\-\+\*]*[a-zA-Z0-9_]+ {
     int i = 0;
     while(1)
     {
         ++i;
-        if ((yytext[i] < 'Z' && yytext[i] > 'A') || (yytext[i] < '9' && yytext[i] > '0') || (yytext[i] == '_'))
+        if ((yytext[i] <= 'Z' && yytext[i] >= 'A') || (yytext[i] <= '9' && yytext[i] >= '0') || (yytext[i] == '_'))
             continue;
-        if (yytext[i] < 'z' && yytext[i] > 'a')
+        if (yytext[i] <= 'z' && yytext[i] >= 'a')
             continue;
         break;
     }
