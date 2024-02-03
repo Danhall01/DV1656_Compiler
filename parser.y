@@ -13,13 +13,15 @@
 Node_s* root;
 extern int yylineno;
 extern int lex_valid;
-int syntax_valid = 1;
 extern int yylex(void);
 void yyerror (char const * s)  /* Called by yyparse on error */
 {
     if (lex_valid)
-        printf ("%s\n", s);
-    syntax_valid = 0;
+    {
+      fprintf(stderr, "Syntax errors found! See the logs below:\n");
+      fprintf(stderr, "\t@error at line %d. Cannot generate a syntax for this input: %s\n", yylineno, s);
+      fprintf(stderr, "End of syntax errors!\n");
+    }
 }
 }
 

@@ -6,7 +6,6 @@
 
 extern FILE*   yyin;
 extern int     lex_valid;
-extern int     syntax_valid;
 extern Node_s* root;
 
 
@@ -21,7 +20,7 @@ int main(int argc, char** argv)
             return 1;
         }
     }
-    if (yyparse() > 0 || !lex_valid || !syntax_valid)
+    if (yyparse() != 0 || !lex_valid)
         return 1;
     generateTree(root);
     fclose(yyin);
