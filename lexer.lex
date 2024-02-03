@@ -87,7 +87,7 @@ extern int yylex(void);
 
 "//"[^\n]* {}
 . {if (errorl != yylineno) fprintf(stderr, "[-] Error (Line %d): lexical ('%s' symbol is not recognized by the grammar)\n", yylineno, yytext); errorl = yylineno; lex_valid = 0;}
-[a-zA-Z_][^()\[\] \n\t]*[a-zA-Z0-9_]+ {
+[a-zA-Z_][^()\[\] \n\t\.]*[a-zA-Z0-9_]+ {
     int i = 0;
     while(1)
     {
@@ -99,9 +99,9 @@ extern int yylex(void);
         break;
     }
     if (errorl != yylineno)
-        fprintf(stderr, "[-] Error (Line %d): lexical ('%c'' symbol is not recognized by the grammar)\n", yylineno, yytext[i]);
+        fprintf(stderr, "[-] Error (Line %d): lexical ('%c' symbol is not recognized by the grammar, from \"%s\")\n", yylineno, yytext[i], yytext);
     errorl = yylineno;
     lex_valid = 0;
 }
-([^a-zA-Z_(\.\n\t\r "])[a-zA-Z_0-9]* {fprintf(stderr, "[-] Error (Line %d): lexical ('%s' is invalid identifier)\n", yylineno, yytext); errorl = yylineno; lex_valid = 0; return IDENTIFIER;}
+([^a-zA-Z_(\.\n\t\r, "])[a-zA-Z_0-9]* {fprintf(stderr, "[-] Error (Line %d): lexical ('%s' is invalid identifier)\n", yylineno, yytext); errorl = yylineno; lex_valid = 0; return IDENTIFIER;}
 %%
