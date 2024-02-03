@@ -103,5 +103,5 @@ extern int yylex(void);
     errorl = yylineno;
     lex_valid = 0;
 }
-[^a-zA-Z_(\.\n "][a-zA-Z_0-9]* {fprintf(stderr, "[-] Error (Line %d): lexical ('%s' is invalid identifier)\n", yylineno, yytext); errorl = yylineno; lex_valid = 0; return IDENTIFIER;}
+([^a-zA-Z_(\.\n\t "])[a-zA-Z_0-9]* {fprintf(stderr, "[-] Error (Line %d): lexical ('%s' is invalid identifier)\n", yylineno, yytext); errorl = yylineno; lex_valid = 0; return IDENTIFIER;}
 %%
