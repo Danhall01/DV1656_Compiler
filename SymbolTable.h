@@ -2,7 +2,42 @@
 
 #include <stdint.h>
 #include "settings.h"
-#include "Node.h"
+
+typedef enum RecordType 
+{
+    noneRecord,
+    classRecord,
+    methodRecord,
+    variableRecord
+}RecordType_e;
+
+typedef enum SymbolType
+{
+    noneType,
+    integerType,
+    intArrayType,
+    booleanType,
+    voidType,
+    stringArrayType
+}SymbolType_e;
+
+typedef union Record
+{
+    struct Meta
+    {
+        union Record* prevScope;
+        uint32_t size;
+        uint32_t capacity;    
+    }Meta;
+    
+    struct Entry 
+    {
+        RecordType_e record;
+        const char* name;
+        SymbolType_e type;
+        union Record* SubScope;
+    }Entry;
+} Record_u;
 
 typedef struct SymbolTable
 {
@@ -10,36 +45,9 @@ typedef struct SymbolTable
     Record_u rootScope;
 } SymbolTable_s;
 
-enum RecordType 
-{
-    classRecord,
-    methodRecord,
-    variablesRecord
-};
+typedef struct Node Node_s;
+SymbolTable_s GenerateSymboltable(Node_s* AST);
 
-enum SymbolType
-{
-    integer,
-    intArray,
-    boolean
-};
+void STAddEntry(Record_u scope[static 1], RecordType_e record, const char* name, SymbolType_e type);
 
-typedef union Record
-{
-    struct Meta
-    {
-        Record_u* prevScope;
-        uint32_t size;
-        uint32_t capacity;    
-    };
-    
-    struct Entry 
-    {
-        RecordType record;
-        const char* name;
-        SymbolType type;
-        Record_u* SubScope;
-    };
-} Record_u;
-
-SymbolTable GenerateSymboltable(Node_s AST);
+Record_u* STAddScope(Record_u scope[static 1], RecordType_e record, const char* name, SymbolType_e type);

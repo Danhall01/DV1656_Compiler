@@ -21,7 +21,8 @@ int main(int argc, char** argv)
         }
     }
     yyparse();
-    generateTree(root);
+    if (GENERATE_PARSER_TREE == 1)
+        generateTree(root);
     fclose(yyin);
     return 0;
 }

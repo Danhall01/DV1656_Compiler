@@ -9,7 +9,6 @@
 Node_s* initNodeTree(const char* type, const char* value, int32_t lineno)
 {
     Node_s* node = NULL;
-#ifdef PRINT_PARSER_TREE
     node = (Node_s*) malloc(sizeof(Node_s));
     if (node == NULL)
     {
@@ -19,6 +18,7 @@ Node_s* initNodeTree(const char* type, const char* value, int32_t lineno)
     node->lineno = lineno;
     node->type   = type;
     node->value  = value;
+    node->record = noneRecord;
 
     node->children = (Node_s**) malloc(sizeof(Node_s* [START_CAPACITY]));
     if (node->children == NULL)
@@ -28,13 +28,18 @@ Node_s* initNodeTree(const char* type, const char* value, int32_t lineno)
     }
     node->capacity = START_CAPACITY;
     node->size     = 0;
-#endif
     return node;
+}
+
+Node_s* initNodeTreeRecord(const char* type, const char* value, int32_t lineno, RecordType_e record)
+{
+    Node_s* out = initNodeTree(type, value, lineno);
+    out->record = record;
+    return out;
 }
 
 void addSubTree(Node_s node[static 1], Node_s* newNode)
 {
-#ifdef PRINT_PARSER_TREE
     if (newNode == NULL)
         return;
     if (node->size == node->capacity)
@@ -49,7 +54,6 @@ void addSubTree(Node_s node[static 1], Node_s* newNode)
         node->children = temp;
     }
     node->children[node->size++] = newNode;
-#endif
 }
 
 
