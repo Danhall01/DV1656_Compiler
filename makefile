@@ -1,5 +1,5 @@
 # Write the name of the compile target here, will be used in "make run"
-override COMPILE_TARGET ?= test_files/tree_validation/OperatorPriority.java
+override COMPILE_TARGET ?= test_files/assignment3_valid/A.java
 
 
 VERSION = std=c2x
