@@ -6,20 +6,11 @@
 typedef enum RecordType 
 {
     noneRecord,
+    rootRecord,
     classRecord,
     methodRecord,
     variableRecord
 }RecordType_e;
-
-typedef enum SymbolType
-{
-    noneType,
-    integerType,
-    intArrayType,
-    booleanType,
-    voidType,
-    stringArrayType
-}SymbolType_e;
 
 typedef union Record
 {
@@ -34,8 +25,8 @@ typedef union Record
     {
         RecordType_e record;
         const char* name;
-        SymbolType_e type;
-        union Record* SubScope;
+        const char* type;
+        union Record* subScope;
     }Entry;
 } Record_u;
 
@@ -48,6 +39,4 @@ typedef struct SymbolTable
 typedef struct Node Node_s;
 SymbolTable_s GenerateSymboltable(Node_s* AST);
 
-void STAddEntry(Record_u scope[static 1], RecordType_e record, const char* name, SymbolType_e type);
-
-Record_u* STAddScope(Record_u scope[static 1], RecordType_e record, const char* name, SymbolType_e type);
+void STGenerateVisualization(SymbolTable_s* ST);

@@ -3,6 +3,7 @@
 #include "parser.tab.h"
 #include "settings.h"
 #include "Node.h"
+#include "SymbolTable.h"
 
 extern FILE* yyin;
 
@@ -23,6 +24,7 @@ int main(int argc, char** argv)
     yyparse();
     if (GENERATE_PARSER_TREE == 1)
         generateTree(root);
+    SymbolTable_s ST = GenerateSymboltable(root);
     fclose(yyin);
     return 0;
 }

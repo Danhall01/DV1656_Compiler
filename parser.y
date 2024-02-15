@@ -77,7 +77,7 @@ MainClass:
                                                                           Node_s* node4 = initNodeTree("METHOD BODY", "", yylineno);
                                                                         
                                                                           addSubTree(node2, initNodeTree("RETURN TYPE", "VOID", yylineno));
-                                                                          addSubTree(node3, initNodeTreeRecord($13, "STRING ARRAY", yylineno, variableRecord));
+                                                                          addSubTree(node3, initNodeTreeRecord("STRING ARRAY", $13, yylineno, variableRecord));
                                                                           addSubTree(node2, node3);
                                                                           addSubTree(node4, $16);
                                                                           addSubTree(node2, node4);
@@ -120,7 +120,7 @@ RecParameter:
                                               Node_s* node = initNodeTree($2, $1, yylineno);
                                               addSubTree($$, node); }
         | RecParameter ',' Type Identifier  { $$ = $1;
-                                              Node_s* node = initNodeTreeRecord($4, $3, yylineno, variableRecord); 
+                                              Node_s* node = initNodeTreeRecord($3, $4, yylineno, variableRecord); 
                                               addSubTree($$, node); }
 ;
 Parameters:
@@ -150,7 +150,7 @@ MethodDeclaration:
 
 VarDeclaration:
           Type Identifier ';' { $$ = initNodeTree("VARIABLE DECLARATION", "", yylineno);
-                                addSubTree($$, initNodeTreeRecord($2, $1, yylineno, variableRecord)); }
+                                addSubTree($$, initNodeTreeRecord($1, $2, yylineno, variableRecord)); }
 ;
 
 Type:
