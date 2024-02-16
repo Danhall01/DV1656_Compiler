@@ -77,16 +77,16 @@ SymbolTable_s GenerateSymboltable(Node_s AST[static 1])
     table.currentScope = &table.rootScope;
     return table;
 }
-/*
+
 static void generateVizContent(Record_u scope[static 1], int count[static 1], FILE file[static 1])
 {
-    node->id = ++(*count);
+    int id = ++(*count);
 
     const char* labelFormat = "n%d [label=\"%s:%s\"];\n";
     const char* nnFormat    = "n%d -> n%d\n";
 
     char*   writebuf  = NULL;
-    int32_t writeSize = snprintf(NULL, 0, labelFormat, node->id, node->type, node->value);
+    int32_t writeSize = snprintf(NULL, 0, labelFormat, id, scope->Entry.type, scope->Entry.name);
     if (writeSize < 0)
     {
         fprintf(stderr, "[-] Unable to generate tree (sprintf).");
@@ -95,17 +95,18 @@ static void generateVizContent(Record_u scope[static 1], int count[static 1], FI
     size_t bufCapacity = sizeof(char[writeSize]) * 2;
     writebuf           = malloc(bufCapacity);
 
-    sprintf(writebuf, labelFormat, node->id, node->type, node->value);
+    sprintf(writebuf, labelFormat, id, scope->Entry.type, scope->Entry.name);
     fwrite(writebuf, sizeof(*writebuf), writeSize, file);
 
-    for (uint32_t i = 0; i < node->size; ++i)
+    if (scope->Entry.subScope != NULL)
+    for (uint32_t i = 0; i < scope->Entry.subScope[0].Meta.size; ++i)
     {
-        generateVizContent(node->children[i], count, file);
+        generateVizContent(&(scope->Entry.subScope[i]), count, file);
 
-        writeSize = snprintf(NULL, 0, nnFormat, node->id, node->children[i]->id);
+        writeSize = snprintf(NULL, 0, nnFormat, id, id + i);
         if (writeSize < 0)
         {
-            fprintf(stderr, "[-] Unable to generate tree, recursion\n");
+            fprintf(stderr, "[-] Unable to generate st viz, recursion\n");
             exit(1);
         }
 
@@ -120,7 +121,7 @@ static void generateVizContent(Record_u scope[static 1], int count[static 1], FI
             }
         }
         memset(writebuf, 0, bufCapacity);
-        sprintf(writebuf, nnFormat, node->id, node->children[i]->id);
+        sprintf(writebuf, nnFormat, id, id + i);
         fwrite(writebuf, sizeof(*writebuf), writeSize, file);
     }
     if (writebuf)
@@ -137,11 +138,10 @@ void STGenerateVisualization(SymbolTable_s* ST)
     char    writebuf[] = "digraph {\n";
     fwrite(writebuf, sizeof(*writebuf), sizeof(writebuf) - 1, file);
 
-    generateVizContent(node, &count, file);
+    generateVizContent(&(ST->rootScope), &count, file);
 
     fwrite("}", 1, 1, file);
     fclose(file);
 
     printf("\nBuilt a symbol table graph at %s. Use 'make st' to generate the pdf version.\n", fname);
 }
-*/

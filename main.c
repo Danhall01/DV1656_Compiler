@@ -25,6 +25,7 @@ int main(int argc, char** argv)
     if (GENERATE_PARSER_TREE == 1)
         generateTree(root);
     SymbolTable_s ST = GenerateSymboltable(root);
+    STGenerateVisualization(&ST);
     fclose(yyin);
     return 0;
 }
