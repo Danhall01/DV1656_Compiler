@@ -49,9 +49,13 @@ void GenerateTableRec(Node_s AST[static 1], Record_u scope[static 1])
     case variableRecord:
         STAddEntry(scope, variableRecord, AST->value, AST->type);
         break;
+    
+    case noneRecord:
+    case rootRecord:
+        break;
     }
 
-    for (int i = 0; i < AST->size; i++)
+    for (uint32_t i = 0; i < AST->size; i++)
     {
         GenerateTableRec(AST->children[i], scope);
     }
@@ -61,7 +65,7 @@ SymbolTable_s GenerateSymboltable(Node_s AST[static 1])
 {
     SymbolTable_s table;
     table.rootScope.Entry.record = rootRecord;
-    table.rootScope.Entry.name = AST->type;
+    table.rootScope.Entry.name = "Program";
     table.rootScope.Entry.type = "";
 
     table.rootScope.Entry.subScope = (Record_u*)malloc(sizeof(Record_u) * (1 + START_CAPACITY));
@@ -69,7 +73,7 @@ SymbolTable_s GenerateSymboltable(Node_s AST[static 1])
     table.rootScope.Entry.subScope[0].Meta.size = 0;
     table.rootScope.Entry.subScope[0].Meta.capacity = START_CAPACITY;
 
-    for (int i = 0; i < AST->size; i++)
+    for (uint32_t i = 0; i < AST->size; i++)
     {
         GenerateTableRec(AST->children[i], &table.rootScope);
     }
@@ -80,13 +84,73 @@ SymbolTable_s GenerateSymboltable(Node_s AST[static 1])
 
 static void generateVizContent(Record_u scope[static 1], int count[static 1], FILE file[static 1])
 {
-    int id = ++(*count);
+    scope->Entry.id = ++(*count);
 
-    const char* labelFormat = "n%d [label=\"%s:%s\"];\n";
+    const char* labelFormat = "n%d [label=\"%s:%s\n%s\"];\n";
     const char* nnFormat    = "n%d -> n%d\n";
 
+    const char* labelSubFormat = "%s name:%s type:%s\n";
+    uint32_t lableCapacity = 100;
+    uint32_t lableSize = 0;
+    char* labelBuf = malloc(lableCapacity);
+    memset((void*)labelBuf, 0, lableCapacity);
+    char lableRecord[9];
+    
+    if (scope->Entry.subScope != NULL)
+    for (uint32_t i = 0; i < scope->Entry.subScope[0].Meta.size; i++)
+    {
+        switch (scope->Entry.subScope[i + 1].Entry.record)
+        {
+        case classRecord:
+            strcpy(lableRecord, "Class");
+            break;
+        
+        case methodRecord:
+            strcpy(lableRecord, "Method");
+            break;
+
+        case variableRecord:
+            strcpy(lableRecord, "Variable");
+            break;
+
+        case noneRecord:
+        case rootRecord:
+            break;
+        }
+        uint32_t lineSize = snprintf(NULL, 0, labelSubFormat, lableRecord, scope->Entry.subScope[i + 1].Entry.name, scope->Entry.subScope[i + 1].Entry.type);
+        while (lableCapacity <= (lableSize + lineSize + 1))
+        {
+            lableCapacity *= 2;
+            labelBuf = realloc((void*)labelBuf, lableCapacity);
+        }
+        
+        sprintf(labelBuf + lableSize, labelSubFormat, lableRecord, scope->Entry.subScope[i + 1].Entry.name, scope->Entry.subScope[i + 1].Entry.type);
+        lableSize += lineSize;
+    }
+
+    switch (scope->Entry.record)
+    {
+    case rootRecord:
+        strcpy(lableRecord, "Root");
+        break;
+    case classRecord:
+        strcpy(lableRecord, "Class");
+        break;
+    
+    case methodRecord:
+        strcpy(lableRecord, "Method");
+        break;
+
+    case variableRecord:
+        strcpy(lableRecord, "Variable");
+        break;
+
+    case noneRecord:
+        break;
+    }
     char*   writebuf  = NULL;
-    int32_t writeSize = snprintf(NULL, 0, labelFormat, id, scope->Entry.type, scope->Entry.name);
+    int32_t writeSize = snprintf(NULL, 0, labelFormat, scope->Entry.id, lableRecord, scope->Entry.name, labelBuf);
+    
     if (writeSize < 0)
     {
         fprintf(stderr, "[-] Unable to generate tree (sprintf).");
@@ -94,16 +158,21 @@ static void generateVizContent(Record_u scope[static 1], int count[static 1], FI
     }
     size_t bufCapacity = sizeof(char[writeSize]) * 2;
     writebuf           = malloc(bufCapacity);
-
-    sprintf(writebuf, labelFormat, id, scope->Entry.type, scope->Entry.name);
+    
+    sprintf(writebuf, labelFormat, scope->Entry.id, lableRecord, scope->Entry.name, labelBuf);
     fwrite(writebuf, sizeof(*writebuf), writeSize, file);
+    
+    if (labelBuf)
+        free(labelBuf);
 
     if (scope->Entry.subScope != NULL)
     for (uint32_t i = 0; i < scope->Entry.subScope[0].Meta.size; ++i)
     {
-        generateVizContent(&(scope->Entry.subScope[i]), count, file);
+        if ((scope->Entry.subScope[i + 1].Entry.record != classRecord) && (scope->Entry.subScope[i + 1].Entry.record != methodRecord))
+            continue;
+        generateVizContent(&(scope->Entry.subScope[i + 1]), count, file);
 
-        writeSize = snprintf(NULL, 0, nnFormat, id, id + i);
+        writeSize = snprintf(NULL, 0, nnFormat, scope->Entry.id, scope->Entry.subScope[i + 1].Entry.id);
         if (writeSize < 0)
         {
             fprintf(stderr, "[-] Unable to generate st viz, recursion\n");
@@ -121,7 +190,7 @@ static void generateVizContent(Record_u scope[static 1], int count[static 1], FI
             }
         }
         memset(writebuf, 0, bufCapacity);
-        sprintf(writebuf, nnFormat, id, id + i);
+        sprintf(writebuf, nnFormat, scope->Entry.id, scope->Entry.subScope[i + 1].Entry.id);
         fwrite(writebuf, sizeof(*writebuf), writeSize, file);
     }
     if (writebuf)
@@ -131,15 +200,13 @@ static void generateVizContent(Record_u scope[static 1], int count[static 1], FI
 void STGenerateVisualization(SymbolTable_s* ST)
 {
     FILE* file;
-    char* fname = "symbolTable.dot";
+    char* fname = "st.dot";
     file        = fopen(fname, "w");
 
     int32_t count      = 0;
     char    writebuf[] = "digraph {\n";
     fwrite(writebuf, sizeof(*writebuf), sizeof(writebuf) - 1, file);
-
     generateVizContent(&(ST->rootScope), &count, file);
-
     fwrite("}", 1, 1, file);
     fclose(file);
 

@@ -72,7 +72,7 @@ MainClass:
             '}' 
           '}'                                                           { $$ = initNodeTreeRecord("MAIN CLASS", $3, yylineno, classRecord);
                                                                           Node_s* node1 = initNodeTree("METHODS", "", yylineno);
-                                                                          Node_s* node2 = initNodeTree("METHOD DECLARATION", "main", yylineno);
+                                                                          Node_s* node2 = initNodeTreeRecord("METHOD DECLARATION", "main", yylineno, methodRecord);
                                                                           Node_s* node3 = initNodeTree("PARAMETERS", "", yylineno);
                                                                           Node_s* node4 = initNodeTree("METHOD BODY", "", yylineno);
                                                                         
@@ -117,7 +117,7 @@ ClassDeclaration:
 
 RecParameter:
           Type Identifier                   { $$ = initNodeTree("PARAMETERS", "", yylineno); 
-                                              Node_s* node = initNodeTree($2, $1, yylineno);
+                                              Node_s* node = initNodeTreeRecord($1, $2, yylineno, variableRecord);
                                               addSubTree($$, node); }
         | RecParameter ',' Type Identifier  { $$ = $1;
                                               Node_s* node = initNodeTreeRecord($3, $4, yylineno, variableRecord); 

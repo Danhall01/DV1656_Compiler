@@ -27,6 +27,7 @@ typedef union Record
         const char* name;
         const char* type;
         union Record* subScope;
+        int id;
     }Entry;
 } Record_u;
 
