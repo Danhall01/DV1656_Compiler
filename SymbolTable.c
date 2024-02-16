@@ -212,3 +212,98 @@ void STGenerateVisualization(SymbolTable_s* ST)
 
     printf("\nBuilt a symbol table graph at %s. Use 'make st' to generate the pdf version.\n", fname);
 }
+
+
+Record_u* STLookUp(SymbolTable_s ST[static 1], const char* identifier)
+{
+    for (uint32_t i = 0; i < ST->currentScope->Entry.subScope[0].Meta.size; i++)
+    {
+        if (strcmp(identifier, ST->currentScope->Entry.subScope[1 + i].Entry.name))
+        {
+            return &(ST->currentScope->Entry.subScope[1 + i]);
+        }
+    }
+    return NULL;
+}
+
+Record_u* STDeepLookUp(SymbolTable_s ST[static 1], const char* identifier)
+{
+    Record_u* record = STLookUp(ST, identifier);
+    if (record != NULL) return record;
+
+    Record_u* scope = ST->currentScope;
+    for (uint32_t i = 0; i < ST->currentScope->Entry.subScope[0].Meta.size; i++)
+    {
+        if (STSetScope(ST, &(scope->Entry.subScope[i + 1])) == 0)
+        {
+            record = STDeepLookUp(ST, identifier);
+            if (record != NULL) break;
+        }
+    }
+    ST->currentScope = scope;
+    return record;
+}
+
+Record_u* STGoTo(SymbolTable_s ST[static 1], const char* identifier)
+{
+    Record_u* record = STLookUp(ST, identifier);
+    if (record != NULL) return record;
+
+    Record_u* scope = ST->currentScope;
+    for (uint32_t i = 0; i < ST->currentScope->Entry.subScope[0].Meta.size; i++)
+    {
+        if (STSetScope(ST, &(scope->Entry.subScope[i + 1])) == 0)
+        {
+            record = STGoTo(ST, identifier);
+            if (record != NULL) break;
+        }
+    }
+    return record;
+}
+
+
+Record_u* STCurrentScope(SymbolTable_s ST[static 1])
+{
+    return ST->currentScope;
+}
+
+int STSetScope(SymbolTable_s ST[static 1], Record_u scope[static 1])
+{
+    if (scope->Entry.subScope == NULL) return -1;
+    ST->currentScope = scope;
+    return 0;
+}
+
+void STResetScope(SymbolTable_s ST[static 1])
+{
+    ST->currentScope = &(ST->rootScope);
+}
+
+Record_u* STEnterScope(SymbolTable_s ST[static 1], const char* identifier)
+{
+    Record_u* scope = STLookUp(ST, identifier);
+    if ((scope == NULL) || (scope->Entry.subScope == NULL)) return NULL;
+    ST->currentScope = scope;
+    return scope;
+}
+
+Record_u* STExitScope(SymbolTable_s ST[static 1])
+{
+    if (ST->currentScope == &(ST->rootScope)) return NULL;
+    ST->currentScope = ST->currentScope->Entry.subScope[0].Meta.prevScope;
+    return ST->currentScope;
+}
+
+
+const char* STName(Record_u record[static 1])
+{
+    return record->Entry.name;
+}
+const char* STType(Record_u record[static 1])
+{
+    return record->Entry.type;
+}
+RecordType_e* STRecordType(Record_u record[static 1])
+{
+    return &(record->Entry.record);
+}
