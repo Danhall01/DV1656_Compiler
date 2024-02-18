@@ -11,6 +11,7 @@
 
 %code{
 Node_s* root;
+Node_s* classes;
 extern int yylineno;
 extern int yylex(void);
 void yyerror (char const * s)  /* Called by yyparse on error */
@@ -41,24 +42,20 @@ void yyerror (char const * s)  /* Called by yyparse on error */
 
 %start Goal
 
-%type <nodeval> ParametersExp RecParamExp Expression RecStatement Statement VarDeclaration RecParameter Parameters RecMethodBody MethodDeclaration RecVarDecl RecMethodDecl ClassDeclaration RecMain MainClass RecClassDecl Goal VariableDeclarations MethodDeclarations Classes
+%type <nodeval> ParametersExp RecParamExp Expression RecStatement Statement VarDeclaration RecParameter Parameters RecMethodBody MethodDeclaration RecVarDecl RecMethodDecl ClassDeclaration RecMain MainClass RecClassDecl Goal VariableDeclarations MethodDeclarations
 %type <strval> Identifier Type
 
 %%
+Goal:     
+          RecClassDecl { $$ = root = initNodeTree("ROOT", "", yylineno); 
+                                        addSubTree($$, $1);}
+;
+
 RecClassDecl:
-          ClassDeclaration              { $$ = initNodeTree("CLASSES", "", yylineno); 
+          MainClass              { $$ = initNodeTree("CLASSES", "", yylineno); 
                                           addSubTree($$, $1); }
         | RecClassDecl ClassDeclaration { $$ = $1; 
                                           addSubTree($$, $2); }
-;
-Classes:
-          /* empty */                   { $$ = NULL; }
-        | RecClassDecl                  { $$ = $1; }
-;
-Goal:     
-          MainClass Classes { $$ = root = initNodeTree("ROOT", "", yylineno); 
-                                        addSubTree($$, $1);
-                                        addSubTree($$, $2); }
 ;
 
 RecMain:
@@ -73,9 +70,19 @@ MainClass:
             '{'  
               RecMain 
             '}' 
-          '}'                                                           { $$ = initNodeTree("MAIN CLASS", $3, yylineno); 
-                                                                          addSubTree($$, initNodeTree("INPUT", $13, yylineno));
-                                                                          addSubTree($$, $16); }
+          '}'                                                           { $$ = initNodeTreeRecord("MAIN CLASS", $3, yylineno, classRecord);
+                                                                          Node_s* node1 = initNodeTree("METHODS", "", yylineno);
+                                                                          Node_s* node2 = initNodeTreeRecord("METHOD DECLARATION", "main", yylineno, methodRecord);
+                                                                          Node_s* node3 = initNodeTree("PARAMETERS", "", yylineno);
+                                                                          Node_s* node4 = initNodeTree("METHOD BODY", "", yylineno);
+                                                                        
+                                                                          addSubTree(node2, initNodeTree("RETURN TYPE", "VOID", yylineno));
+                                                                          addSubTree(node3, initNodeTreeRecord("STRING ARRAY", $13, yylineno, variableRecord));
+                                                                          addSubTree(node2, node3);
+                                                                          addSubTree(node4, $16);
+                                                                          addSubTree(node2, node4);
+                                                                          addSubTree(node1, node2);
+                                                                          addSubTree($$, node1); }
 ;
 
 RecVarDecl:
@@ -103,17 +110,17 @@ ClassDeclaration:
           '{' 
               VariableDeclarations
               MethodDeclarations
-          '}'                 { $$ = initNodeTree("CLASS DECLARATION", $2, yylineno); 
+          '}'                 { $$ = initNodeTreeRecord("CLASS DECLARATION", $2, yylineno, classRecord); 
                                 addSubTree($$, $4);
                                 addSubTree($$, $5); }
 ;
 
 RecParameter:
           Type Identifier                   { $$ = initNodeTree("PARAMETERS", "", yylineno); 
-                                              Node_s* node = initNodeTree($2, $1, yylineno);
+                                              Node_s* node = initNodeTreeRecord($1, $2, yylineno, variableRecord);
                                               addSubTree($$, node); }
         | RecParameter ',' Type Identifier  { $$ = $1;
-                                              Node_s* node = initNodeTree($4, $3, yylineno); 
+                                              Node_s* node = initNodeTreeRecord($3, $4, yylineno, variableRecord); 
                                               addSubTree($$, node); }
 ;
 Parameters:
@@ -132,7 +139,7 @@ MethodDeclaration:
           '{'
             RecMethodBody
             RETURN Expression ';'
-          '}'                                       { $$ = initNodeTree("METHOD DECLARATION", $3, yylineno); 
+          '}'                                       { $$ = initNodeTreeRecord("METHOD DECLARATION", $3, yylineno, methodRecord); 
                                                       addSubTree($$, initNodeTree("RETURN TYPE", $2, yylineno));
                                                       addSubTree($$, $5);
                                                       addSubTree($$, $8);
@@ -142,8 +149,8 @@ MethodDeclaration:
 ;
 
 VarDeclaration:
-          Type Identifier ';' { $$ = initNodeTree("VARIABLE DECLARATION", $2, yylineno);
-                                addSubTree($$, initNodeTree("TYPE", $1, yylineno)); }
+          Type Identifier ';' { $$ = initNodeTree("VARIABLE DECLARATION", "", yylineno);
+                                addSubTree($$, initNodeTreeRecord($1, $2, yylineno, variableRecord)); }
 ;
 
 Type:
