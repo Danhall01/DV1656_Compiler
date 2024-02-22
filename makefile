@@ -15,11 +15,11 @@ TREE_TARGET = tree
 ST_TARGET = st
 APP_NAME = compiler
 
-all: compile lex.o symboltable.o node.o parser.o main.o
-	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o SymbolTable.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)
+all: compile lex.o symboltable.o node.o parser.o semantic.o main.o
+	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o SymbolTable.o Semantic.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)
 
 compile: lex lex.yy.c bison $(BISON_TARGET).tab.c
-	
+
 main.o:
 	clang -c $(COMPILE_FLAGS) main.c $(COMPILE_FLAGS_EXTRA)
 lex.o:
@@ -30,7 +30,8 @@ parser.o:
 	clang -c $(COMPILE_FLAGS) $(BISON_TARGET).tab.c $(COMPILE_FLAGS_EXTRA)
 symboltable.o:
 	clang -c $(COMPILE_FLAGS) SymbolTable.c $(COMPILE_FLAGS_EXTRA)
-
+semantic.o:
+	clang -c $(COMPILE_FLAGS) Semantic.c $(COMPILE_FLAGS_EXTRA)
 
 lex:
 	flex $(LEX_TARGET)
