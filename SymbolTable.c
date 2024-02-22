@@ -234,16 +234,21 @@ void STGenerateVisualization(SymbolTable_s* ST)
 }
 
 
-Record_u* STLookUp(SymbolTable_s ST[static 1], const char* identifier)
+Record_u* STLookUp(SymbolTable_s ST[static 1], const char* identifier, int32_t* refcount)
 {
+    Record_u* retAddr = NULL;
+    int32_t   refc    = 0;
     for (uint32_t i = 0; i < ST->currentScope->Entry.subScope[0].Meta.size; i++)
     {
         if (strcmp(identifier, ST->currentScope->Entry.subScope[1 + i].Entry.name) == 0)
         {
-            return &(ST->currentScope->Entry.subScope[1 + i]);
+            ++refc;
+            retAddr = &(ST->currentScope->Entry.subScope[1 + i]);
         }
     }
-    return NULL;
+    if (refcount != NULL)
+        *refcount = refc;
+    return retAddr;
 }
 
 Record_u* STDeepLookUp(SymbolTable_s ST[static 1], const char* identifier)
