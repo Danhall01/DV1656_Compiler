@@ -243,7 +243,8 @@ Record_u* STLookUp(SymbolTable_s ST[static 1], const char* identifier, int32_t* 
         if (strcmp(identifier, ST->currentScope->Entry.subScope[1 + i].Entry.name) == 0)
         {
             ++refc;
-            retAddr = &(ST->currentScope->Entry.subScope[1 + i]);
+            if (retAddr == NULL)
+                retAddr = &(ST->currentScope->Entry.subScope[1 + i]);
         }
     }
     if (refcount != NULL)

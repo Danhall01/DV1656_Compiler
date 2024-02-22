@@ -42,7 +42,7 @@ SymbolTable_s       GenerateSymboltable(Node_s* AST);
 
 void STGenerateVisualization(SymbolTable_s* ST);
 
-// Searches current scope for identifier. returns record if found. returns NULL if not
+// Searches current scope for identifier. returns first record if found. returns NULL if not
 Record_u* STLookUp(SymbolTable_s ST[static 1], const char* identifier, int32_t* refcount);
 
 // Searches current subtree (current and underlying scopes) for identifier. returns record if found.
