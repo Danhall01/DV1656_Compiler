@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 
+#include "Semantic.h"
 #include "parser.tab.h"
 #include "settings.h"
 #include "Node.h"
@@ -26,6 +28,11 @@ int main(int argc, char** argv)
         generateTree(root);
     SymbolTable_s ST = GenerateSymboltable(root);
     STGenerateVisualization(&ST);
+    if (SemanticAnalysis(root, &ST) != 0)
+    {
+        fclose(yyin);
+        return 1;
+    }
     fclose(yyin);
     return 0;
 }
