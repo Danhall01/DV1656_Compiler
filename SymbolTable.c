@@ -253,7 +253,7 @@ Record_u* STLookUp(SymbolTable_s ST[static 1], const char* identifier, int32_t* 
 
 Record_u* STDeepLookUp(SymbolTable_s ST[static 1], const char* identifier)
 {
-    Record_u* record = STLookUp(ST, identifier);
+    Record_u* record = STLookUp(ST, identifier, NULL);
     if (record != NULL)
         return record;
 
@@ -273,7 +273,7 @@ Record_u* STDeepLookUp(SymbolTable_s ST[static 1], const char* identifier)
 
 Record_u* STGoTo(SymbolTable_s ST[static 1], const char* identifier)
 {
-    Record_u* record = STLookUp(ST, identifier);
+    Record_u* record = STLookUp(ST, identifier, NULL);
     if (record != NULL)
         return record;
 
@@ -305,7 +305,7 @@ void STResetScope(SymbolTable_s ST[static 1]) { ST->currentScope = &(ST->rootSco
 
 Record_u* STEnterScope(SymbolTable_s ST[static 1], const char* identifier)
 {
-    Record_u* scope = STLookUp(ST, identifier);
+    Record_u* scope = STLookUp(ST, identifier, NULL);
     if ((scope == NULL) || (scope->Entry.subScope == NULL))
         return NULL;
     ST->currentScope = scope;
