@@ -85,5 +85,5 @@ extern int yylex(void);
 
 
 "//"[^\n]* {}
-. {printf("\n[-] Error (line: %d) - lexical ('%s' is not recognized by the grammar.)", yylineno, yytext); lex_valid = 0; }
+. {fprintf(stderr, "\n[-] \t@error at line %d: - lexical ('%s' is not recognized by the grammar.)", yylineno, yytext); lex_valid = 0; }
 %%

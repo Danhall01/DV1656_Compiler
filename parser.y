@@ -16,7 +16,7 @@ extern int yylineno;
 extern int yylex(void);
 void yyerror (char const * s)  /* Called by yyparse on error */
 {
-  printf ("%s\n", s);
+  fprintf(stderr, "[-] \t@error at line %d: %s\n", yylineno, s);
 }
 }
 

@@ -123,7 +123,7 @@ static int32_t DeclarationCheck(Node_s node[static 1], SymbolTable_s st[static 1
         STResetScope(st);
         if (STLookUp(st, node->value, NULL) == NULL)
         {
-            printf("[w] (Semantic) Warning, referenced class \"%s\" not found.\n", node->value);
+            fprintf(stderr, "[w] \t@error at line %d: (Semantic) Warning, referenced class \"%s\" not found.\n", node->lineno, node->value);
             ++s_errCount;
         }
         parent = node;
@@ -143,7 +143,8 @@ static int32_t DeclarationCheck(Node_s node[static 1], SymbolTable_s st[static 1
         {
             fprintf(
                 stderr,
-                "[w] (Semantic) Warning undefined, identifier \"%s\" does not exist in scope. Possible generation of invalid Symbol Table. This might cause UB in compilation\n",
+                "[w] \t@error at line %d: (Semantic) Warning undefined, identifier \"%s\" does not exist in scope. Possible generation of invalid Symbol Table. This might cause UB in compilation\n",
+                node->lineno,
                 node->value);
             ++s_errCount;
         }
@@ -151,9 +152,9 @@ static int32_t DeclarationCheck(Node_s node[static 1], SymbolTable_s st[static 1
         {
             fprintf(
                 stderr,
-                "[w] (Semantic) Warning redefinition, identifier \"%s\" already declared. New declaration on line %d.\n",
-                node->value,
-                node->lineno);
+                "[w] \t@error at line %d: (Semantic) Warning redefinition, identifier \"%s\" already declared.\n",
+                node->lineno,
+                node->value);
             ++s_errCount;
         }
         SetScopePost(st, node);
@@ -169,7 +170,8 @@ static int32_t DeclarationCheck(Node_s node[static 1], SymbolTable_s st[static 1
         {
             if (PollMethodExists(st, node->value) == NULL)
             {
-                printf("[w] (Semantic) Warning, undefined reference to local method \"%s\".",
+                fprintf(stderr, "[w] \t@error at line %d: (Semantic) Warning, undefined reference to local method \"%s\".",
+                       node->lineno,
                        node->value);
             }
             return TREE_CONTINUE;
@@ -178,7 +180,8 @@ static int32_t DeclarationCheck(Node_s node[static 1], SymbolTable_s st[static 1
         // If method is from outside class
         if (PollClassFunc(st, parent->value, node->value) == NULL)
         {
-            printf("[w] (Semantic) Warning, undefined reference to method \"%s\" in class \"%s\"\n",
+            fprintf(stderr, "[w] \t@error at line %d: (Semantic) Warning, undefined reference to method \"%s\" in class \"%s\"\n",
+                   node->lineno,
                    node->value,
                    parent->value);
             ++s_errCount;
@@ -192,9 +195,9 @@ static int32_t DeclarationCheck(Node_s node[static 1], SymbolTable_s st[static 1
     // Check if variable is declared before it is used
     if (STLookUp(st, node->value, NULL) == NULL)
     {
-        printf("[w] (Semantic) Warning, Variable \"%s\" is not defined before use. (Line %d)\n",
-               node->value,
-               node->lineno);
+        fprintf(stderr, "[w] \t@error at line %d: (Semantic) Warning, Variable \"%s\" is not defined before use.\n",
+               node->lineno,
+               node->value);
         ++s_errCount;
     }
     return TREE_CONTINUE;

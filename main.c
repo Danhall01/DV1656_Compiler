@@ -23,7 +23,11 @@ int main(int argc, char** argv)
             return 1;
         }
     }
-    yyparse();
+    if (yyparse() != 0) 
+        return 1;
+    else
+        printf("[+] Parser finished without error\n");
+        
     if (GENERATE_PARSER_TREE == 1)
         generateTree(root);
     SymbolTable_s ST = GenerateSymboltable(root);
