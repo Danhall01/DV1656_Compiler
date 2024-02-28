@@ -26,8 +26,9 @@ typedef union Record
         RecordType_e  record;
         const char*   name;
         const char*   type;
+        int32_t       lineno;
         union Record* subScope;
-        int           id;
+        int32_t       id;
     } Entry;
 } Record_u;
 

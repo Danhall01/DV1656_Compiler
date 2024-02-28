@@ -7,7 +7,11 @@
 
 #define START_CAPACITY 5
 
-void STAddEntry(Record_u scope[static 1], RecordType_e record, const char* name, const char* type)
+void STAddEntry(Record_u     scope[static 1],
+                RecordType_e record,
+                const char*  name,
+                const char*  type,
+                int32_t      lineno)
 {
     if (scope->Entry.subScope[0].Meta.size >= scope->Entry.subScope[0].Meta.capacity)
     {
@@ -20,15 +24,17 @@ void STAddEntry(Record_u scope[static 1], RecordType_e record, const char* name,
     scope->Entry.subScope[scope->Entry.subScope[0].Meta.size].Entry.record   = record;
     scope->Entry.subScope[scope->Entry.subScope[0].Meta.size].Entry.name     = name;
     scope->Entry.subScope[scope->Entry.subScope[0].Meta.size].Entry.type     = type;
+    scope->Entry.subScope[scope->Entry.subScope[0].Meta.size].Entry.lineno   = lineno;
     scope->Entry.subScope[scope->Entry.subScope[0].Meta.size].Entry.subScope = NULL;
 }
 
 Record_u* STAddScope(Record_u     scope[static 1],
                      RecordType_e record,
                      const char*  name,
-                     const char*  type)
+                     const char*  type,
+                     int32_t      lineno)
 {
-    STAddEntry(scope, record, name, type);
+    STAddEntry(scope, record, name, type, lineno);
 
     scope->Entry.subScope[scope->Entry.subScope[0].Meta.size].Entry.subScope
         = (Record_u*) malloc(sizeof(Record_u) * (1 + START_CAPACITY));
@@ -46,15 +52,16 @@ void GenerateTableRec(Node_s AST[static 1], Record_u scope[static 1])
     switch (AST->record)
     {
         case classRecord:
-            scope = STAddScope(scope, classRecord, AST->value, AST->value);
+            scope = STAddScope(scope, classRecord, AST->value, AST->value, AST->lineno);
             break;
 
         case methodRecord:
-            scope = STAddScope(scope, methodRecord, AST->value, AST->children[0]->value);
+            scope
+                = STAddScope(scope, methodRecord, AST->value, AST->children[0]->value, AST->lineno);
             break;
 
         case variableRecord:
-            STAddEntry(scope, variableRecord, AST->value, AST->type);
+            STAddEntry(scope, variableRecord, AST->value, AST->type, AST->lineno);
             break;
 
         case noneRecord:
