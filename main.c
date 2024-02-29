@@ -23,11 +23,11 @@ int main(int argc, char** argv)
             return 1;
         }
     }
-    if (yyparse() != 0) 
+    if (yyparse() != 0)
         return 1;
     else
         printf("[+] Parser finished without error\n");
-        
+
     if (GENERATE_PARSER_TREE == 1)
         generateTree(root);
     SymbolTable_s ST = GenerateSymboltable(root);
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
     if (SemanticAnalysis(root, &ST) != 0)
     {
         fclose(yyin);
-        return 1;
+        return 0;
     }
     fclose(yyin);
     return 0;
