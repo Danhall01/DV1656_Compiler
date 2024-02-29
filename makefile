@@ -1,5 +1,5 @@
 # Write the name of the compile target here, will be used in "make run"
-override COMPILE_TARGET ?= test_files/semantic_errors/DuplicateIdentifiers.java
+override COMPILE_TARGET ?= test_files/semantic_errors/InvalidDefinitions.java
 
 
 VERSION = std=c2x

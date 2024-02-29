@@ -16,21 +16,24 @@
 
 #define TREE_CONTINUE 0
 #define TREE_STOP 1
+#define SEMANTIC_VERBAL_DEBUG
 
 static uint32_t s_errCount = 0;
 
+#ifdef SEMANTIC_VERBAL_DEBUG
 static void PrintNode(Node_s* node)
 {
     if (node == NULL)
         return;
     printf("Node:\n"
-           "\tType: %s\n\tValue: %s\n\tRecord: %d\nLine %d\nCol %d\n",
+           "\tType: %s\n\tValue: %s\n\tRecord: %d\n\tLine %d\n\tCol %d\n",
            node->type,
            node->value,
            node->record,
            node->lineno,
            node->colno);
 }
+#endif
 
 static Record_u* EntryExists(SymbolTable_s st[static 1], const char* target, int32_t* refc)
 {
@@ -61,37 +64,34 @@ static int32_t ValidateDeclare(Node_s node[static 1], SymbolTable_s st[static 1]
     if (node->record <= 0)
         return TREE_CONTINUE;
 
-    PrintNode(node);
-
     int32_t   refc  = 0;
     Record_u* found = EntryExists(st, node->value, &refc);
-    printf("Found: %d\n", refc);
-    if (refc > 1
+    // Check if type is the same (var to var / method to method) then check if it is different
+    // instance to report.
+    if (refc > 1 && found->Entry.record == node->record
         && (found->Entry.lineno != node->lineno
             || (found->Entry.lineno == node->lineno && found->Entry.colno != node->colno)))
     {
         fprintf(
             stderr,
-            "[w]\t@error at line %d: (Semantic) Re-definition, identifier \"%s\" already declared at line %d.\n",
+            "[w]\t@error at line %d: (Semantic) Re-definition, identifier \"%s\" already declared at line %d col %d\n",
             node->lineno,
             node->value,
-            found->Entry.lineno);
+            found->Entry.lineno,
+            found->Entry.colno);
         ++s_errCount;
     }
     return TREE_CONTINUE;
 }
-/*
-static int32_t TypeCheck(Node_s node[static 1], SymbolTable_s st[static 1])
+static int32_t ValidateDeclUsage(Node_s node[static 1], SymbolTable_s st[static 1])
 {
-    //
+#ifdef SEMANTIC_VERBAL_DEBUG
+    PrintNode(node);
+#endif
+
+
     return TREE_CONTINUE;
 }
-static int32_t UsageCheck(Node_s node[static 1], SymbolTable_s st[static 1])
-{
-    //
-    return TREE_CONTINUE;
-}
-*/
 
 
 // =======================
@@ -103,17 +103,17 @@ static void SetScopePre(SymbolTable_s* st, Node_s* node)
 
     if (strcmp(node->type, "METHOD DECLARATION") == 0)
     {
-        STEnterScope(st, node->value);
+        STEnterScopeByLine(st, node->value, node->lineno);
         STExitScope(st);
     }
 }
 static void SetScopePost(SymbolTable_s* st, Node_s* node)
 {
     if (strcmp(node->type, "MAIN CLASS") == 0 || strcmp(node->type, "CLASS DECLARATION") == 0)
-        STEnterScope(st, node->value);
+        STEnterScopeByLine(st, node->value, node->lineno);
 
     if (strcmp(node->type, "METHOD DECLARATION") == 0)
-        STEnterScope(st, node->value);
+        STEnterScopeByLine(st, node->value, node->lineno);
 }
 static int32_t scopeWrapper(int32_t (*action)(Node_s node[static 1], SymbolTable_s st[static 1]),
                             Node_s        node[static 1],
@@ -139,7 +139,7 @@ int32_t SemanticAnalysis(Node_s ASTRoot[static 1], SymbolTable_s symbolTable[sta
     STResetScope(symbolTable);
 
     ForEachNode(ASTRoot, symbolTable, ValidateDeclare);
-    // ForEachNode(ASTRoot, symbolTable, TypeCheck);
+    ForEachNode(ASTRoot, symbolTable, ValidateDeclUsage);
     // ForEachNode(ASTRoot, symbolTable, UsageCheck);
 
     printf("[+] Semantic Analysis finished with %d errors.\n", s_errCount);

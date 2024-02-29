@@ -68,6 +68,7 @@ void STResetScope(SymbolTable_s ST[static 1]);
 // searches current scope for identifier and set it as the new current scope. returns the record for
 // the new scope if successful. returns null if identifier could not be a scope
 Record_u* STEnterScope(SymbolTable_s ST[static 1], const char* identifier);
+Record_u* STEnterScopeByLine(SymbolTable_s ST[static 1], const char* identifier, int32_t lineno);
 
 // Exits current scope, sets the current scope to be the parent scope. returns the new current
 // scope. if called in root, current scope is unchanged and NULL is returned

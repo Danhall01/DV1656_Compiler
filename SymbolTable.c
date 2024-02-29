@@ -322,6 +322,25 @@ Record_u* STEnterScope(SymbolTable_s ST[static 1], const char* identifier)
     ST->currentScope = scope;
     return scope;
 }
+Record_u* STEnterScopeByLine(SymbolTable_s ST[static 1], const char* identifier, int32_t lineno)
+{
+    Record_u* scope = NULL;
+    for (uint32_t i = 0; i < ST->currentScope->Entry.subScope[0].Meta.size; i++)
+    {
+        if (ST->currentScope->Entry.subScope[1 + i].Entry.lineno == lineno)
+        {
+            if (strcmp(identifier, ST->currentScope->Entry.subScope[1 + i].Entry.name) == 0)
+            {
+                scope = &(ST->currentScope->Entry.subScope[1 + i]);
+            }
+        }
+    }
+    if (scope != NULL)
+        STSetScope(ST, scope);
+
+    return scope;
+}
+
 
 Record_u* STExitScope(SymbolTable_s ST[static 1])
 {
