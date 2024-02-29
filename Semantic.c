@@ -24,10 +24,12 @@ static void PrintNode(Node_s* node)
     if (node == NULL)
         return;
     printf("Node:\n"
-           "\tType: %s\n\tValue: %s\n\tRecord: %d\n",
+           "\tType: %s\n\tValue: %s\n\tRecord: %d\nLine %d\nCol %d\n",
            node->type,
            node->value,
-           node->record);
+           node->record,
+           node->lineno,
+           node->colno);
 }
 
 static Record_u* EntryExists(SymbolTable_s st[static 1], const char* target, int32_t* refc)
@@ -64,7 +66,9 @@ static int32_t ValidateDeclare(Node_s node[static 1], SymbolTable_s st[static 1]
     int32_t   refc  = 0;
     Record_u* found = EntryExists(st, node->value, &refc);
     printf("Found: %d\n", refc);
-    if (refc > 1 && found->Entry.lineno != node->lineno)
+    if (refc > 1
+        && (found->Entry.lineno != node->lineno
+            || (found->Entry.lineno == node->lineno && found->Entry.colno != node->colno)))
     {
         fprintf(
             stderr,
