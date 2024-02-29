@@ -74,8 +74,8 @@ static int32_t ValidateDeclare(Node_s node[static 1], SymbolTable_s st[static 1]
     //
     int32_t   refc  = 0;
     Record_u* found = EntryExists(st, node->value, &refc);
-    if (refc > 1 && found->Entry.record == node->record && found->Entry.lineno != node->lineno
-        || found->Entry.colno != node->colno)
+    if (refc > 1 && found->Entry.record == node->record
+        && (found->Entry.lineno != node->lineno || found->Entry.colno != node->colno))
     {
         fprintf(
             stderr,
