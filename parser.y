@@ -237,10 +237,9 @@ Expression:
                                                                     addSubTree($$, $3); }
       | Expression '.' LENGTH                                     { $$ = initNodeTreeTAC("LENGTH", "", yylineno, lex_colno, noneRecord, lengthTac);
                                                                     addSubTree($$, $1); }
-      | Expression '.' Identifier '(' ParametersExp ')'           { $$ = $1;
-                                                                    Node_s* node = initNodeTreeTAC("FUNCTION CALL", $3.identifier, yylineno, lex_colno, noneRecord, functionTac);
-                                                                    addSubTree(node, $5);
-                                                                    addSubTree($$, node); }
+      | Expression '.' Identifier '(' ParametersExp ')'           { $$ = initNodeTreeTAC("FUNCTION CALL", $3.identifier, yylineno, lex_colno, noneRecord, functionTac);
+                                                                    addSubTree($$, $1);
+                                                                    addSubTree($$, $5); }
       | INTEGER_LITERAL                                           { $$ = initNodeTreeTAC("", yylval.strval, yylineno, lex_colno, noneRecord, intExp); }
       | TRUE                                                      { $$ = initNodeTreeTAC("TRUE", "", yylineno, lex_colno, noneRecord, trueExp); }
       | FALSE                                                     { $$ = initNodeTreeTAC("FALSE", "", yylineno, lex_colno, noneRecord, falseExp); }

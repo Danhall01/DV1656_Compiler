@@ -47,6 +47,8 @@ const char* RecGenerateGraph(CFGBlock_s* block[static 1], Node_s AST[static 1], 
     const char* temp = NULL;
     CFGBlock_s* savedBlock = NULL;
     CFGBlock_s* savedBlock2 = NULL;
+    uint32_t count = 0;
+    char* Nbuf = NULL;
     switch (AST->tacOp)
     {
     case intExp:
@@ -202,6 +204,39 @@ const char* RecGenerateGraph(CFGBlock_s* block[static 1], Node_s AST[static 1], 
         AddTAC(*block, AST->tacOp, "", RecGenerateGraph(block, AST->children[0], id), "");
         return "";
 
+    case functionTac:
+        AddTAC(*block, callerTac, "", RecGenerateGraph(block, AST->children[0], id), "");
+        
+        if (AST->size > 1)
+        {
+            uint32_t cap = 5;
+            const char** paramBuf = malloc(sizeof(const char*) * cap);
+            for (count = 0; count < AST->children[1]->size; count++)
+            {
+                if (count >= cap) 
+                {
+                    cap *= 2;
+                    paramBuf = realloc(paramBuf, cap);
+                }
+                
+                paramBuf[count] = RecGenerateGraph(block, AST->children[1]->children[count], id);
+            }
+            for (uint32_t i = 0; i < count; i++)
+            {
+                AddTAC(*block, paramTac, "", paramBuf[i], "");
+            }
+            free(paramBuf);
+        }
+
+        buf = malloc(14);
+        sprintf(buf,"__t%d", (*block)->tempCount++);
+
+        Nbuf = malloc(11);
+        sprintf(Nbuf,"%d", count + 1);
+
+        AddTAC(*block, AST->tacOp, buf, AST->value, Nbuf);
+        return buf;
+
     default:
         break;
     }
@@ -356,6 +391,17 @@ void TranslateTAC(char** labelBuf, uint32_t* lableSize, uint32_t* lableCapacity,
 
         case returnTac:
             WriteTAC(labelBuf, lableSize, lableCapacity, "return %s\n", tac->src1);
+            break;
+
+        case functionTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := call %s, %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+        case callerTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "caller %s\n", tac->src1);
+            break;
+        case paramTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "param %s\n", tac->src1);
+            break;
 
         default:
             break;
@@ -389,7 +435,7 @@ static void generateVizContent(CFGBlock_s block[static 1], FILE file[static 1], 
     }
 
     TranslateTAC(&condBuf, &condSize, &condCapacity, &block->blockCondition);
-    char* condStart = condBuf + 3;
+    char* condStart = condBuf + 4;
     
     char*   writebuf = NULL;
     int32_t writeSize = snprintf(NULL, 0, labelFormat, block->identifier, (strcmp(overrideName, "") == 0) ? blockName : overrideName, labelBuf, condStart);

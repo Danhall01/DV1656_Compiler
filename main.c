@@ -36,11 +36,11 @@ int main(int argc, char** argv)
     if (GENERATE_SYMBOL_TABLE_TREE == 1)
         STGenerateVisualization(&ST);
     
-    if (SemanticAnalysis(root, &ST) != 0)
-    {
-        fclose(yyin);
-        return 0;
-    }
+    //if (SemanticAnalysis(root, &ST) != 0)
+    //{
+    //    fclose(yyin);
+    //    return 0;
+    //}
 
     CFG_s CFG = GenerateControlFlowGraphs(root);
     if (GENERATE_CONTROL_FLOW_GRAPH_TREE == 1)

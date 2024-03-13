@@ -24,7 +24,6 @@ typedef enum ThreeAdressCodeOperators
     mulTac,
     divTac,
     indexTac,
-    functionTac,
 
     negTac,
     lengthTac,
@@ -41,7 +40,11 @@ typedef enum ThreeAdressCodeOperators
     whileTac,
 
     printTac,
-    returnTac
+    returnTac,
+
+    functionTac,
+    paramTac,
+    callerTac
 } TACOp_e;
 
 typedef struct ThreeAdressCode
