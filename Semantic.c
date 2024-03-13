@@ -320,6 +320,7 @@ static const char* _Eval(SymbolTable_s st[static 1], Node_s* node)
             return NULL;
         Record_u* ret = ExistsMethod(st, node->value, lhs_class);
 
+        // printf("ret: %s\n", ret->Entry.name);
         if (ret == NULL || ParseParameters(st, node->children[1], ret) != 0)
             return NULL;
 
@@ -344,6 +345,7 @@ static int32_t ParseParameters(SymbolTable_s st[static 1], Node_s* fcall, Record
         return 1;
 
     uint32_t paramc = forigin->Entry.subScope[0].Meta.paramc;
+    // printf("paramc: %d\n", paramc);
     if (fcall == NULL)
         return paramc > 0;
     if (fcall->size != paramc)
