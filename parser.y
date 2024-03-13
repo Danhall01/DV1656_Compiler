@@ -151,7 +151,7 @@ MethodDeclaration:
                                                       addSubTree($$, initNodeTree("RETURN TYPE", $2, yylineno, lex_colno));
                                                       addSubTree($$, $5);
                                                       addSubTree($$, $8);
-                                                      Node_s* node = initNodeTree("RETURN EXPRESSION", "", yylineno, lex_colno);
+                                                      Node_s* node = initNodeTreeTAC("RETURN EXPRESSION", "", yylineno, lex_colno, noneRecord, returnTac);
                                                       addSubTree(node, $10);
                                                       addSubTree($$, node); }
 ;
@@ -169,27 +169,27 @@ Type:
 ;
 
 RecStatement:
-          /* empty */             { $$ = NULL; }
-        | RecStatement Statement  { $$ = $2;
-                                    addSubTree($$, $1); }
+          /* empty */             { $$ = initNodeTree("CODE BLOCK", "", yylineno, lex_colno); }
+        | RecStatement Statement  { $$ = $1;
+                                    addSubTree($$, $2); }
 ;
 Statement:
           '{' RecStatement '}'                                    { $$ = $2; }
-        | IF '(' Expression ')' Statement              %prec then { $$ = initNodeTree("IF STATEMENT OPEN", "", yylineno, lex_colno);
+        | IF '(' Expression ')' Statement              %prec then { $$ = initNodeTreeTAC("IF STATEMENT OPEN", "", yylineno, lex_colno, noneRecord, openIfTac);
                                                                     addSubTree($$, $3);
                                                                     addSubTree($$, $5); }
-        | IF '(' Expression ')' Statement ELSE Statement          { $$ = initNodeTree("IF STATEMENT CLOSED", "", yylineno, lex_colno);
+        | IF '(' Expression ')' Statement ELSE Statement          { $$ = initNodeTreeTAC("IF STATEMENT CLOSED", "", yylineno, lex_colno, noneRecord, closedIfTac);
                                                                     addSubTree($$, $3);
                                                                     addSubTree($$, $5);
                                                                     addSubTree($$, $7); }
-        | WHILE '(' Expression ')' Statement                      { $$ = initNodeTree("WHILE LOOP", "", yylineno, lex_colno);
+        | WHILE '(' Expression ')' Statement                      { $$ = initNodeTreeTAC("WHILE LOOP", "", yylineno, lex_colno, noneRecord, whileTac);
                                                                     addSubTree($$, $3);
                                                                     addSubTree($$, $5); }
-        | PRINTLN '(' Expression ')' ';'                          { $$ = initNodeTree("PRINT LINE", "", yylineno, lex_colno);
+        | PRINTLN '(' Expression ')' ';'                          { $$ = initNodeTreeTAC("PRINT LINE", "", yylineno, lex_colno, noneRecord, printTac);
                                                                     addSubTree($$, $3); }
         | Identifier '=' Expression ';'                           { $$ = initNodeTreeTAC("ASSIGN", $1.identifier, yylineno, lex_colno, noneRecord, assignTac);
                                                                     addSubTree($$, $3); }
-        | Identifier '[' Expression ']' '=' Expression ';'        { $$ = initNodeTree("ASSIGN INDEX", $1.identifier, yylineno, lex_colno);
+        | Identifier '[' Expression ']' '=' Expression ';'        { $$ = initNodeTreeTAC("ASSIGN INDEX", $1.identifier, yylineno, lex_colno, noneRecord, assignArrTac);
                                                                     addSubTree($$, $3);
                                                                     addSubTree($$, $6); }
 ;
@@ -246,9 +246,9 @@ Expression:
       | FALSE                                                     { $$ = initNodeTreeTAC("FALSE", "", yylineno, lex_colno, noneRecord, falseExp); }
       | Identifier                                                { $$ = initNodeTreeTAC("", $1.identifier, yylineno, lex_colno, noneRecord, varExp); }
       | THIS                                                      { $$ = initNodeTreeTAC("THIS", "", yylineno, lex_colno, noneRecord, thisExp); }
-      | NEW INT '[' Expression ']'                                { $$ = initNodeTree("ARRAY INSTANTIATION", "", yylineno, lex_colno);
+      | NEW INT '[' Expression ']'                                { $$ = initNodeTreeTAC("ARRAY INSTANTIATION", "", yylineno, lex_colno, noneRecord, newArrTac);
                                                                     addSubTree($$, $4); }
-      | NEW Identifier '(' ')'                                    { $$ = initNodeTree("CLASS INSTANTIATION", $2.identifier, yylineno, lex_colno); }
+      | NEW Identifier '(' ')'                                    { $$ = initNodeTreeTAC("CLASS INSTANTIATION", $2.identifier, yylineno, lex_colno, noneRecord, newClassTac); }
       | '!' Expression                                            { $$ = initNodeTreeTAC("NEGATION", "", yylineno, lex_colno, noneRecord, negTac);
                                                                     addSubTree($$, $2); }
       | '(' Expression ')'                                        { $$ = $2; }

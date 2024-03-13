@@ -16,9 +16,14 @@ CFGBlock_s NewBlock(uint32_t* id)
     block.tacArray = malloc(sizeof(TAC_s) * block.tacCapacity);
     block.tempCount = 0;
     
-    memset(&(block.blockCondition), 0, sizeof(TAC_s));
+    block.blockCondition.op = assignTac;
+    block.blockCondition.dst = "";
+    block.blockCondition.src1 = "true";
+    block.blockCondition.src2 = "";
     block.trueExit = NULL;
     block.falseExit = NULL;
+
+    block.visited = 0;
     return block;
 }
 
@@ -39,6 +44,9 @@ void AddTAC(CFGBlock_s block[static 1], TACOp_e op, const char* dst, const char*
 const char* RecGenerateGraph(CFGBlock_s* block[static 1], Node_s AST[static 1], uint32_t* id)
 {
     char* buf = NULL;
+    const char* temp = NULL;
+    CFGBlock_s* savedBlock = NULL;
+    CFGBlock_s* savedBlock2 = NULL;
     switch (AST->tacOp)
     {
     case intExp:
@@ -60,19 +68,138 @@ const char* RecGenerateGraph(CFGBlock_s* block[static 1], Node_s AST[static 1], 
     case subTac:
     case mulTac:
     case divTac:
+    case indexTac:
         buf = malloc(14);
         sprintf(buf,"__t%d", (*block)->tempCount++);
         AddTAC(*block, AST->tacOp, buf, RecGenerateGraph(block, AST->children[0], id), RecGenerateGraph(block, AST->children[1], id));
         return buf;
 
     case negTac:
+    case lengthTac:
+    case newArrTac:
         buf = malloc(14);
         sprintf(buf,"__t%d", (*block)->tempCount++);
         AddTAC(*block, AST->tacOp, buf, RecGenerateGraph(block, AST->children[0], id), "");
         return buf;
+    
+    case newClassTac:
+        buf = malloc(14);
+        sprintf(buf,"__t%d", (*block)->tempCount++);
+        AddTAC(*block, AST->tacOp, buf, AST->value, "");
+        return buf;
 
     case assignTac:
-        AddTAC(*block, AST->tacOp, AST->value, RecGenerateGraph(block, AST->children[0], id), "");
+        temp = RecGenerateGraph(block, AST->children[0], id);
+        if(strncmp(temp, "__t", 3) == 0)
+        {
+            (*block)->tempCount--;
+            (*block)->tacArray[(*block)->tacSize - 1].dst = AST->value;
+        }
+        else
+        {
+            AddTAC(*block, AST->tacOp, AST->value, temp, "");
+        }
+        return "";
+    
+    case assignArrTac:
+        AddTAC(*block, AST->tacOp, AST->value, RecGenerateGraph(block, AST->children[0], id), RecGenerateGraph(block, AST->children[1], id));
+        return "";
+
+    case openIfTac:
+        savedBlock = *block;
+        temp = RecGenerateGraph(block, AST->children[0], id);
+        if(strncmp(temp, "__t", 3) == 0)
+        {
+            savedBlock->tempCount--;
+            savedBlock->tacArray[savedBlock->tacSize - 1].dst = "";
+
+            savedBlock->blockCondition = savedBlock->tacArray[savedBlock->tacSize - 1];
+            savedBlock->tacSize--;
+        }
+        else
+        {
+            savedBlock->blockCondition.src1 = temp;
+        }
+        
+        savedBlock->trueExit = malloc(sizeof(CFGBlock_s));
+        *(savedBlock->trueExit) = NewBlock(id);
+        *block = savedBlock->trueExit;
+        RecGenerateGraph(block, AST->children[1], id);
+
+        (*block)->trueExit = malloc(sizeof(CFGBlock_s));
+        *((*block)->trueExit) = NewBlock(id);
+
+        savedBlock->falseExit = (*block)->trueExit;
+
+        *block = (*block)->trueExit;
+        return "";
+
+    case closedIfTac:
+        savedBlock = *block;
+        temp = RecGenerateGraph(block, AST->children[0], id);
+        if(strncmp(temp, "__t", 3) == 0)
+        {
+            savedBlock->tempCount--;
+            savedBlock->tacArray[savedBlock->tacSize - 1].dst = "";
+
+            savedBlock->blockCondition = savedBlock->tacArray[savedBlock->tacSize - 1];
+            savedBlock->tacSize--;
+        }
+        else
+        {
+            savedBlock->blockCondition.src1 = temp;
+        }
+        
+        savedBlock->trueExit = malloc(sizeof(CFGBlock_s));
+        *(savedBlock->trueExit) = NewBlock(id);
+        *block = savedBlock->trueExit;
+        RecGenerateGraph(block, AST->children[1], id);
+
+        (*block)->trueExit = malloc(sizeof(CFGBlock_s));
+        *((*block)->trueExit) = NewBlock(id);
+        savedBlock2 = (*block)->trueExit;
+
+        savedBlock->falseExit = malloc(sizeof(CFGBlock_s));
+        *(savedBlock->falseExit) = NewBlock(id);
+        *block = savedBlock->falseExit;
+        RecGenerateGraph(block, AST->children[2], id);
+
+        (*block)->trueExit = savedBlock2;
+        *block = savedBlock2;
+        return "";
+
+    case whileTac:
+        savedBlock = *block;
+        temp = RecGenerateGraph(block, AST->children[0], id);
+        if(strncmp(temp, "__t", 3) == 0)
+        {
+            savedBlock->tempCount--;
+            savedBlock->tacArray[savedBlock->tacSize - 1].dst = "";
+
+            savedBlock->blockCondition = savedBlock->tacArray[savedBlock->tacSize - 1];
+            savedBlock->tacSize--;
+        }
+        else
+        {
+            savedBlock->blockCondition.src1 = temp;
+        }
+        
+        savedBlock->trueExit = malloc(sizeof(CFGBlock_s));
+        *(savedBlock->trueExit) = NewBlock(id);
+        *block = savedBlock->trueExit;
+        RecGenerateGraph(block, AST->children[1], id);
+
+        (*block)->trueExit = savedBlock;
+
+        savedBlock->falseExit = malloc(sizeof(CFGBlock_s));
+        *(savedBlock->falseExit) = NewBlock(id);
+
+        *block = savedBlock->falseExit;
+        return "";
+
+    case printTac:
+    case returnTac:
+        AddTAC(*block, AST->tacOp, "", RecGenerateGraph(block, AST->children[0], id), "");
         return "";
 
     default:
@@ -148,7 +275,7 @@ CFG_s GenerateControlFlowGraphs(Node_s* AST)
     return graphs;
 }
 
-void WriteTAC(char* buf, uint32_t* bufsize, uint32_t* bufcap, const char* format, ...)
+void WriteTAC(char** buf, uint32_t* bufsize, uint32_t* bufcap, const char* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -158,74 +285,114 @@ void WriteTAC(char* buf, uint32_t* bufsize, uint32_t* bufcap, const char* format
     while (*bufcap <= ((*bufsize) + lineSize + 1))
     {
         *bufcap *= 2;
-        buf = realloc((void*) buf, *bufcap);
+        *buf = realloc((void*) (*buf), *bufcap);
     }
 
     va_start(args, format);
-    vsprintf(buf + (*bufsize), format, args);
+    vsprintf((*buf) + (*bufsize), format, args);
     *bufsize += lineSize;
+}
+
+void TranslateTAC(char** labelBuf, uint32_t* lableSize, uint32_t* lableCapacity, TAC_s* tac)
+{
+    switch (tac->op)
+    {
+        case andTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s && %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+        case orTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s || %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+        case greaterTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s > %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+        case lesserTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s < %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+        case equalTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s == %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+        case addTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s + %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+        case subTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s - %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+        case mulTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s * %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+        case divTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s / %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+        case indexTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s[%s]\n", tac->dst, tac->src1, tac->src2);
+            break;
+
+        case negTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := !%s\n", tac->dst, tac->src1);
+            break;
+        case lengthTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := length %s\n", tac->dst, tac->src1);
+            break;
+        case newArrTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := new int[%s]\n", tac->dst, tac->src1);
+            break;
+            
+        case newClassTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := new %s\n", tac->dst, tac->src1);
+            break;
+
+        case assignTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s := %s\n", tac->dst, tac->src1);
+            break;
+
+        case assignArrTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "%s[%s] := %s\n", tac->dst, tac->src1, tac->src2);
+            break;
+
+        case printTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "print %s\n", tac->src1);
+            break;
+
+        case returnTac:
+            WriteTAC(labelBuf, lableSize, lableCapacity, "return %s\n", tac->src1);
+
+        default:
+            break;
+    }
 }
 
 static void generateVizContent(CFGBlock_s block[static 1], FILE file[static 1], const char* overrideName)
 {
-    const char* labelFormat = "n%d [shape=box label=\"%s\n\n%s\"];\n";
-    const char* nnFormat    = "n%d -> n%d\n";
+    block->visited = 1;
+    const char* labelFormat = "n%d [shape=box label=\"%s\n\n%s\nif %s\"];\n";
+    const char* nnFormatTrue    = "n%d -> n%d [label=\" True\"];\n";
+    const char* nnFormatFalse    = "n%d -> n%d [label=\" False\"];\n";
 
     uint32_t    lableCapacity  = 100;
     uint32_t    lableSize      = 0;
     char*       labelBuf       = malloc(lableCapacity);
     memset((void*) labelBuf, 0, lableCapacity);
-    char blockName[17];
+
+    uint32_t    condCapacity  = 20;
+    uint32_t    condSize      = 0;
+    char*       condBuf       = malloc(condCapacity);
+    memset((void*) condBuf, 0, condCapacity);
+
+    char blockName[16];
     
-    sprintf(blockName, "Block_%d", block->identifier);
+    sprintf(blockName, "Block%d", block->identifier);
     
     for (uint32_t i = 0; i < block->tacSize; i++)
     {
-        TAC_s* tac = &block->tacArray[i];
-        switch (tac->op)
-        {
-            case andTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := %s && %s\n", tac->dst, tac->src1, tac->src2);
-                break;
-            case orTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := %s || %s\n", tac->dst, tac->src1, tac->src2);
-                break;
-            case greaterTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := %s > %s\n", tac->dst, tac->src1, tac->src2);
-                break;
-            case lesserTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := %s < %s\n", tac->dst, tac->src1, tac->src2);
-                break;
-            case equalTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := %s == %s\n", tac->dst, tac->src1, tac->src2);
-                break;
-            case addTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := %s + %s\n", tac->dst, tac->src1, tac->src2);
-                break;
-            case subTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := %s - %s\n", tac->dst, tac->src1, tac->src2);
-                break;
-            case mulTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := %s * %s\n", tac->dst, tac->src1, tac->src2);
-                break;
-            case divTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := %s / %s\n", tac->dst, tac->src1, tac->src2);
-                break;
-
-            case negTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := !%s\n", tac->dst, tac->src1);
-                break;
-
-            case assignTac:
-                WriteTAC(labelBuf, &lableSize, &lableCapacity, "%s := %s\n", tac->dst, tac->src1);
-                break;
-            default:
-                break;
-        }
+        TranslateTAC(&labelBuf, &lableSize, &lableCapacity, &block->tacArray[i]);
     }
+
+    TranslateTAC(&condBuf, &condSize, &condCapacity, &block->blockCondition);
+    char* condStart = condBuf + 3;
     
     char*   writebuf = NULL;
-    int32_t writeSize = snprintf(NULL, 0, labelFormat, block->identifier, (strcmp(overrideName, "") == 0) ? blockName : overrideName, labelBuf);
+    int32_t writeSize = snprintf(NULL, 0, labelFormat, block->identifier, (strcmp(overrideName, "") == 0) ? blockName : overrideName, labelBuf, condStart);
     
     if (writeSize < 0)
     {
@@ -235,21 +402,30 @@ static void generateVizContent(CFGBlock_s block[static 1], FILE file[static 1], 
     size_t bufCapacity = sizeof(char[writeSize]) * 2;
     writebuf           = malloc(bufCapacity);
 
-    sprintf(writebuf, labelFormat, block->identifier, (strcmp(overrideName, "") == 0) ? blockName : overrideName, labelBuf);
+    sprintf(writebuf, labelFormat, block->identifier, (strcmp(overrideName, "") == 0) ? blockName : overrideName, labelBuf, condStart);
     fwrite(writebuf, sizeof(*writebuf), writeSize, file);
-    if (labelBuf)
-        free(labelBuf);
 
     for (uint32_t i = 0; i < 2; ++i)
     {
         CFGBlock_s* blockPtr;
+        const char* nnFormat;
         if (i == 0)
+        {
             blockPtr = block->trueExit;
+            nnFormat = nnFormatTrue;
+        }
         else
+        {
             blockPtr = block->falseExit;
+            nnFormat = nnFormatFalse;
+        }
         if (blockPtr == NULL) continue;
         
-        generateVizContent(blockPtr, file, "");
+        if (blockPtr->visited == 0)
+        {
+            generateVizContent(blockPtr, file, "");
+        }
+
         
         writeSize = snprintf(
             NULL, 0, nnFormat, block->identifier, blockPtr->identifier);
@@ -275,6 +451,10 @@ static void generateVizContent(CFGBlock_s block[static 1], FILE file[static 1], 
     }
     if (writebuf)
         free(writebuf);
+    if (labelBuf)
+        free(labelBuf);
+    if (condBuf)
+        free(condBuf);
 }
 
 void CFGGenerateVisualization(CFG_s CFG[static 1])

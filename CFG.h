@@ -24,12 +24,24 @@ typedef enum ThreeAdressCodeOperators
     mulTac,
     divTac,
     indexTac,
-    lengthTac,
     functionTac,
 
     negTac,
+    lengthTac,
+    newArrTac,
 
-    assignTac
+    newClassTac,
+
+    assignTac,
+
+    assignArrTac,
+
+    openIfTac,
+    closedIfTac,
+    whileTac,
+
+    printTac,
+    returnTac
 } TACOp_e;
 
 typedef struct ThreeAdressCode
@@ -52,6 +64,8 @@ typedef struct ControlFlowGraphBlock
     TAC_s blockCondition;
     struct ControlFlowGraphBlock* trueExit;
     struct ControlFlowGraphBlock* falseExit;
+
+    uint8_t visited;
 } CFGBlock_s;
 
 typedef struct ControlFlowGraph
