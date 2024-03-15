@@ -205,8 +205,7 @@ const char* RecGenerateGraph(CFGBlock_s* block[static 1], Node_s AST[static 1], 
         return "";
 
     case functionTac:
-        AddTAC(*block, callerTac, "", RecGenerateGraph(block, AST->children[0], id), "");
-        
+        temp = RecGenerateGraph(block, AST->children[0], id);
         if (AST->size > 1)
         {
             uint32_t cap = 5;
@@ -221,11 +220,18 @@ const char* RecGenerateGraph(CFGBlock_s* block[static 1], Node_s AST[static 1], 
                 
                 paramBuf[count] = RecGenerateGraph(block, AST->children[1]->children[count], id);
             }
+
+            AddTAC(*block, callerTac, "", temp, "");
+
             for (uint32_t i = 0; i < count; i++)
             {
                 AddTAC(*block, paramTac, "", paramBuf[i], "");
             }
             free(paramBuf);
+        }
+        else
+        {
+            AddTAC(*block, callerTac, "", temp, "");
         }
 
         buf = malloc(14);
