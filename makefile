@@ -1,5 +1,5 @@
 # Write the name of the compile target here, will be used in "make run"
-override COMPILE_TARGET ?= test_files/semantic_errors/InvalidDefinitions.java
+override COMPILE_TARGET ?= test.java
 
 
 VERSION = std=c2x
@@ -13,10 +13,11 @@ LEX_TARGET = lexer.lex
 BISON_TARGET = parser
 TREE_TARGET = tree
 ST_TARGET = st
+CFG_TARGET = cfg
 APP_NAME = compiler
 
-all: compile lex.o symboltable.o node.o parser.o semantic.o main.o
-	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o SymbolTable.o Semantic.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)
+all: compile lex.o symboltable.o cfg.o node.o parser.o semantic.o main.o
+	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o SymbolTable.o CFG.o Semantic.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)
 
 compile: lex lex.yy.c bison $(BISON_TARGET).tab.c
 
@@ -32,6 +33,8 @@ symboltable.o:
 	clang -c $(COMPILE_FLAGS) SymbolTable.c $(COMPILE_FLAGS_EXTRA)
 semantic.o:
 	clang -c $(COMPILE_FLAGS) Semantic.c $(COMPILE_FLAGS_EXTRA)
+cfg.o:
+	clang -c $(COMPILE_FLAGS) CFG.c $(COMPILE_FLAGS_EXTRA)
 
 lex:
 	flex $(LEX_TARGET)
@@ -45,6 +48,9 @@ tree: run
 st: run
 	dot -Tpdf $(ST_TARGET).dot -o$(ST_TARGET).pdf
 
+cfg: run
+	dot -Tpdf $(CFG_TARGET).dot -o$(CFG_TARGET).pdf
+
 format:
 	clang-format $(wildcard *.c) -style=file --verbose
 
@@ -54,4 +60,4 @@ tidy:
 run: all
 	./$(APP_NAME) $(COMPILE_TARGET)
 clean:
-	rm *.o $(BISON_TARGET).tab.c $(BISON_TARGET).tab.h lex.yy.c $(APP_NAME) tree.dot tree.pdf st.dot st.pdf
+	rm *.o $(BISON_TARGET).tab.c $(BISON_TARGET).tab.h lex.yy.c $(APP_NAME) tree.dot tree.pdf st.dot st.pdf cfg.dot cfg.pdf
