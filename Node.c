@@ -6,10 +6,10 @@
 
 #define START_CAPACITY 16
 
-Node_s* initNodeTree(const char* type, const char* value, int32_t lineno)
+Node_s* initNodeTree(const char* type, const char* value, int32_t lineno, int32_t colno)
 {
     Node_s* node = NULL;
-    node = (Node_s*) malloc(sizeof(Node_s));
+    node         = (Node_s*) malloc(sizeof(Node_s));
     if (node == NULL)
     {
         fprintf(stderr, "[-] Failed to allocate memory for node.\n");
@@ -18,6 +18,7 @@ Node_s* initNodeTree(const char* type, const char* value, int32_t lineno)
     node->lineno = lineno;
     node->type   = type;
     node->value  = value;
+    node->colno  = colno;
     node->record = noneRecord;
 
     node->children = (Node_s**) malloc(sizeof(Node_s* [START_CAPACITY]));
@@ -31,9 +32,10 @@ Node_s* initNodeTree(const char* type, const char* value, int32_t lineno)
     return node;
 }
 
-Node_s* initNodeTreeRecord(const char* type, const char* value, int32_t lineno, RecordType_e record)
+Node_s* initNodeTreeRecord(
+    const char* type, const char* value, int32_t lineno, int32_t colno, RecordType_e record)
 {
-    Node_s* out = initNodeTree(type, value, lineno);
+    Node_s* out = initNodeTree(type, value, lineno, colno);
     out->record = record;
     return out;
 }
@@ -97,7 +99,7 @@ static void generateTreeContent(Node_s node[static 1], int count[static 1], FILE
             exit(1);
         }
 
-        if (((size_t)writeSize) > bufCapacity)
+        if (((size_t) writeSize) > bufCapacity)
         {
             bufCapacity = writeSize * 2;
             writebuf    = realloc(writebuf, bufCapacity);
