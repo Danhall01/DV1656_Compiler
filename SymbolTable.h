@@ -19,6 +19,7 @@ typedef union Record
         union Record* prevScope;
         uint32_t      size;
         uint32_t      capacity;
+        uint32_t      paramc;
     } Meta;
 
     struct Entry

@@ -61,6 +61,15 @@ void GenerateTableRec(Node_s AST[static 1], Record_u scope[static 1])
         case methodRecord:
             scope = STAddScope(
                 scope, methodRecord, AST->value, AST->children[0]->value, AST->lineno, AST->colno);
+            scope->Entry.subScope[0].Meta.paramc = 0;
+            for (uint32_t i = 0; i < AST->size; ++i)
+            {
+                if (strcmp(AST->children[i]->type, "PARAMETERS") == 0)
+                {
+                    scope->Entry.subScope[0].Meta.paramc = AST->children[i]->size;
+                    break;
+                }
+            }
             break;
 
         case variableRecord:
