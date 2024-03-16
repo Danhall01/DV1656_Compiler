@@ -20,6 +20,7 @@ Node_s* initNodeTree(const char* type, const char* value, int32_t lineno, int32_
     node->value  = value;
     node->colno  = colno;
     node->record = noneRecord;
+    node->tacOp = noneTac;
 
     node->children = (Node_s**) malloc(sizeof(Node_s* [START_CAPACITY]));
     if (node->children == NULL)
@@ -37,6 +38,15 @@ Node_s* initNodeTreeRecord(
 {
     Node_s* out = initNodeTree(type, value, lineno, colno);
     out->record = record;
+    return out;
+}
+
+Node_s* initNodeTreeTAC(
+    const char* type, const char* value, int32_t lineno, int32_t colno, RecordType_e record, TACOp_e TAC)
+{
+    Node_s* out = initNodeTree(type, value, lineno, colno);
+    out->record = record;
+    out->tacOp = TAC;
     return out;
 }
 

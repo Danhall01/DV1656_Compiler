@@ -6,6 +6,7 @@
 #include "settings.h"
 #include "Node.h"
 #include "SymbolTable.h"
+#include "CFG.h"
 
 extern FILE* yyin;
 
@@ -30,13 +31,21 @@ int main(int argc, char** argv)
 
     if (GENERATE_PARSER_TREE == 1)
         generateTree(root);
+    
     SymbolTable_s ST = GenerateSymboltable(root);
-    STGenerateVisualization(&ST);
+    if (GENERATE_SYMBOL_TABLE_TREE == 1)
+        STGenerateVisualization(&ST);
+    
     if (SemanticAnalysis(root, &ST) != 0)
     {
         fclose(yyin);
         return 0;
     }
+
+    CFG_s CFG = GenerateControlFlowGraphs(root);
+    if (GENERATE_CONTROL_FLOW_GRAPH_TREE == 1)
+        CFGGenerateVisualization(&CFG);
+
     fclose(yyin);
     return 0;
 }

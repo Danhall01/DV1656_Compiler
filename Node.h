@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "settings.h"
 #include "SymbolTable.h"
+#include "CFG.h"
 
 typedef struct Node
 {
@@ -12,12 +13,15 @@ typedef struct Node
     const char*  type;
     const char*  value;
     RecordType_e record;
+    TACOp_e tacOp;
 
     struct Node** children;
     uint32_t      size;
     uint32_t      capacity;
 } Node_s;
 
+Node_s* initNodeTreeTAC(
+    const char* type, const char* value, int32_t lineno, int32_t colno, RecordType_e record, TACOp_e TAC);
 Node_s* initNodeTreeRecord(
     const char* type, const char* value, int32_t lineno, int32_t colno, RecordType_e record);
 Node_s* initNodeTree(const char* type, const char* value, int32_t lineno, int32_t colno);
