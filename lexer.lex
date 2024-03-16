@@ -6,12 +6,15 @@
 #include <string.h>
 int lex_valid = 1;
 int lex_colno = 0;
+int errorl = 0;
 extern int yylineno;
 extern int yylex(void);
 %}
 %option yylineno noyywrap nounput batch noinput
 
 %%
+"__t"[0-9]* {printf("[-] \t@error at line %d, lexical ('__t' is reserved for compiler useage.)\n", yylineno); lex_valid=0; return IDENTIFIER;}
+
 "int" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("INT");lex_colno += strlen(yytext); return INT;}
 "boolean" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("BOOL");lex_colno += strlen(yytext); return BOOL;}
 "String" {if (lex_valid && PRINT_LEXER_OUTPUT) printf("STRING");lex_colno += strlen(yytext); return STRING;}
@@ -84,9 +87,28 @@ extern int yylex(void);
 
 
 \n {if (lex_valid && PRINT_LEXER_OUTPUT) printf("\n"); lex_colno = 0;}
-<<EOF>> {printf("\n%s\n", lex_valid ? "[+] Lexing finished successfully.":"[-] Lexer failed to parse file. (Se logs for details)"); lex_colno += strlen(yytext);return EOF;}
+<<EOF>> {printf("\n%s\n", lex_valid ? "[+] Lexing finished successfully.":"[-] Lexer failed to parse file. (Se logs for details)\n"); lex_colno += strlen(yytext);return EOF;}
 
 
 "//"[^\n]* {}
-. {fprintf(stderr, "\n[-] \t@error at line %d: - lexical ('%s' is not recognized by the grammar.)", yylineno, yytext); lex_valid = 0; lex_colno += strlen(yytext);}
+. {if(errorl != yylineno) fprintf(stderr, "[-] \t@error at line %d: lexical ('%s' is not recognized by the grammar.)\n", yylineno, yytext); errorl = yylineno; lex_valid = 0; lex_colno += strlen(yytext);}
+
+
+[a-zA-Z_][^()\[\] \n\t\.\,\<\>=/\-\+\*]*[a-zA-Z0-9_]+ {
+    int i = 0;
+    while(1)
+    {
+        ++i;
+        if ((yytext[i] <= 'Z' && yytext[i] >= 'A') || (yytext[i] <= '9' && yytext[i] >= '0') || (yytext[i] == '_'))
+            continue;
+        if (yytext[i] <= 'z' && yytext[i] >= 'a')
+            continue;
+        break;
+    }
+    if (errorl != yylineno)
+        fprintf(stderr, "[-] \t@error at line %d: lexical ('%c' symbol is not recognized by the grammar, from \"%s\")\n", yylineno, yytext[i], yytext);
+    errorl = yylineno;
+    lex_valid = 0;
+}
+([^a-zA-Z_(\.\n\t\r\-\+\!\[,\<\> "])[a-zA-Z_0-9]* {fprintf(stderr, "[-] \t@error at line %d: lexical ('%s' is invalid identifier)\n", yylineno, yytext); errorl = yylineno; lex_valid = 0; return IDENTIFIER;}
 %%
