@@ -16,6 +16,16 @@ ST_TARGET = st
 CFG_TARGET = cfg
 APP_NAME = compiler
 
+interpreter: interpreter.o interlib.o
+	clang $(COMPILE_FLAGS) -o interpreter interpreter.o interlib.o $(COMPILE_FLAGS_EXTRA)
+
+interpreter.o: interpreter.c
+	clang -c $(COMPILE_FLAGS) interpreter.c $(COMPILE_FLAGS_EXTRA)
+
+interlib.o: interlib.c
+	clang -c $(COMPILE_FLAGS) interlib.c $(COMPILE_FLAGS_EXTRA)
+
+
 all: compile lex.o symboltable.o cfg.o node.o parser.o semantic.o main.o
 	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o SymbolTable.o CFG.o Semantic.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)
 
@@ -60,4 +70,4 @@ tidy:
 run: all
 	./$(APP_NAME) $(COMPILE_TARGET)
 clean:
-	rm *.o $(BISON_TARGET).tab.c $(BISON_TARGET).tab.h lex.yy.c $(APP_NAME) tree.dot tree.pdf st.dot st.pdf cfg.dot cfg.pdf
+	rm *.o $(BISON_TARGET).tab.c $(BISON_TARGET).tab.h lex.yy.c $(APP_NAME) tree.dot tree.pdf st.dot st.pdf cfg.dot cfg.pdf interpreter
