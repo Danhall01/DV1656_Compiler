@@ -117,8 +117,10 @@ static Record_u* ExistsEntry(SymbolTable_s st[static 1], const char target[stati
         Record_u* tscope = STLookUp(st, target, &refcount);
         refsum += refcount;
         if (tscope != NULL)
+        {
             retScope = tscope;
-
+            break;
+        }
         if (st->currentScope == &(st->rootScope))
             break;
         STExitScope(st);
@@ -227,6 +229,18 @@ static const char* GetVarType(SymbolTable_s st[static 1], Node_s node[static 1])
     if (strcmp(node->type, "THIS") == 0)
         return GetClassFromThis(st);
 
+    if (strcmp(node->type, "CLASS INSTANTIATION") == 0)
+    {
+        Record_u* oldScope = STCurrentScope(st);
+        STResetScope(st);
+
+        Record_u* retVal = STLookUp(st, target, NULL);
+
+        STSetScope(st, oldScope);
+        return retVal->Entry.type;
+    }
+
+
     // Variable Type
     Record_u* retVal = ExistsEntry(st, target, NULL);
     if (retVal == NULL)
@@ -320,7 +334,7 @@ static const char* _Eval(SymbolTable_s st[static 1], Node_s* node)
             return NULL;
         Record_u* ret = ExistsMethod(st, node->value, lhs_class);
 
-        // printf("ret: %s\n", ret->Entry.name);
+        // printf("ret: %d\n", ret->Entry.name);
         if (ret == NULL || ParseParameters(st, node->children[1], ret) != 0)
             return NULL;
 
@@ -367,6 +381,7 @@ static int32_t EvaluateExpression(SymbolTable_s st[static 1], Node_s node[static
 {
     const char* lhs = GetVarType(st, node);
     const char* rhs = _Eval(st, node->children[0]);
+    // printf("%d: lhs: %s, rhs: %s\n", node->lineno, lhs, rhs);
     if (lhs && rhs)
         return strcmp(lhs, rhs);
     return 1;
