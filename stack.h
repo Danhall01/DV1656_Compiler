@@ -11,7 +11,7 @@ typedef struct _DynamicStack
     size_t  capacity;
     int32_t stack[];
 } stack_s;
-static stack_s* CreateStack()
+stack_s* CreateStack()
 {
     size_t   capacity = 64;
     stack_s* stack    = (stack_s*) malloc(sizeof(*stack) + sizeof(int32_t[capacity]));
@@ -19,21 +19,22 @@ static stack_s* CreateStack()
         *stack = (stack_s){ .size = 0, .capacity = capacity };
     return stack;
 }
-static void DestroyStack(stack_s** stack) { free(*stack); }
-static void Push(stack_s** stack, int32_t value)
+void DestroyStack(stack_s** stack) { free(*stack); }
+void Push(stack_s** stack, int32_t value)
 {
     if (stack == NULL)
         return;
 
     if ((*stack)->size + 1 >= (*stack)->capacity)
     {
-        (*stack) = (stack_s*) realloc((*stack), sizeof(stack_s) + (*stack)->capacity * 1.4);
+        (*stack)->capacity *= 1.4;
+        (*stack) = (stack_s*) realloc((*stack), sizeof(stack_s) + (*stack)->capacity);
         if ((*stack) == NULL)
             abort();
     }
     (*stack)->stack[(*stack)->size++] = value;
 }
-static int32_t Pop(stack_s** stack)
+int32_t Pop(stack_s** stack)
 {
     if (stack == NULL || (*stack)->size == 0)
         return -1;
