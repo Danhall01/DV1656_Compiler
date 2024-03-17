@@ -5,7 +5,7 @@
 #include <string.h>
 
 uint32_t LabelsCap;
-size_t* Labels;
+long* Labels;
 
 typedef struct Caller
 {
@@ -16,12 +16,12 @@ uint32_t CallersCap;
 uint32_t CallersSize;
 Caller_s* Callers;
 
-void RegisterLabel(uint32_t blockId, size_t linePosition)
+void RegisterLabel(uint32_t blockId, long linePosition)
 {
     while (blockId >= LabelsCap)
     {
         LabelsCap *= 2;
-        Labels = realloc(Labels, sizeof(size_t) * LabelsCap);
+        Labels = realloc(Labels, sizeof(long) * LabelsCap);
     }
     Labels[blockId] = linePosition;
 }
@@ -38,11 +38,9 @@ void RegisterCaller(uint32_t calledBlock, long filePosition)
     CallersSize++;
 }
 
-size_t LineCount;
 void WriteLine(const char* line, size_t characters, FILE* file)
 {
     fwrite(line, 1, characters, file);
-    LineCount++;
 }
 
 uint32_t BufCap;
@@ -271,7 +269,7 @@ void TranslateInstruction(FILE* file, TAC_s* tac, SymbolTable_s* ST, CFG_s* CFG,
 void RecCFGTraverse(FILE* file, CFGBlock_s* block, SymbolTable_s* ST, CFG_s* CFG, const char* className, int8_t first)
 {
     block->visited = 1;
-    if (!first) RegisterLabel(block->identifier, LineCount);
+    if (!first) RegisterLabel(block->identifier, ftell(file));
 
     for (uint32_t i = 0; i < block->tacSize; i++)
     {
@@ -305,7 +303,7 @@ void RecCFGTraverse(FILE* file, CFGBlock_s* block, SymbolTable_s* ST, CFG_s* CFG
 void CFGParse(FILE* file, const char* className, const char* methodName, CFGBlock_s* method, SymbolTable_s* ST, CFG_s* CFG)
 {
     VarCount = 0;
-    RegisterLabel(method->identifier, LineCount);
+    RegisterLabel(method->identifier, ftell(file));
 
     STResetScope(ST);
     if (STEnterScope(ST, className) == NULL)
@@ -352,8 +350,6 @@ int GenerateJavaBytecode(const char* savePath, CFG_s* CFG, SymbolTable_s* ST)
     CallersSize = 0;
     CallersCap = 40;
     Callers = malloc(sizeof(Caller_s) * CallersCap);
-
-    LineCount = 0;
 
     for (uint32_t i = 0; i < CFG->size; i++)
     {
