@@ -265,7 +265,7 @@ void RecAddGraph(CFG_s graphs[static 1], Node_s AST[static 1], uint32_t* id, con
         }
 
         char*   blockName = NULL;
-        const char* format = "%s_%s";
+        const char* format = "%s-%s";
         int32_t nameSize = snprintf(NULL, 0, format, className, AST->value);
         if (nameSize < 0)
         {
@@ -526,4 +526,18 @@ void CFGGenerateVisualization(CFG_s CFG[static 1])
 
     printf("\nBuilt a control flow graph vizualisation at %s. Use 'make cfg' to generate the pdf version.\n",
            fname);
+}
+
+void RecResetVisited(CFGBlock_s block[static 1])
+{
+    block->visited = 0;
+    if (block->trueExit != NULL)
+        RecResetVisited(block->trueExit);
+    if (block->falseExit != NULL)
+        RecResetVisited(block->falseExit);
+}
+void CFGResetVisited(CFG_s CFG[static 1])
+{
+    for (uint32_t i = 0; i < CFG->size; i ++)
+        RecResetVisited(&CFG->graphList[i]);
 }

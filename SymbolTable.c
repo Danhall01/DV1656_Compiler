@@ -28,6 +28,7 @@ void STAddEntry(Record_u     scope[static 1],
     scope->Entry.subScope[scope->Entry.subScope[0].Meta.size].Entry.lineno   = lineno;
     scope->Entry.subScope[scope->Entry.subScope[0].Meta.size].Entry.colno    = colno;
     scope->Entry.subScope[scope->Entry.subScope[0].Meta.size].Entry.subScope = NULL;
+    scope->Entry.subScope[scope->Entry.subScope[0].Meta.size].Entry.varIndex = 0xffffffff;
 }
 
 Record_u* STAddScope(Record_u     scope[static 1],
