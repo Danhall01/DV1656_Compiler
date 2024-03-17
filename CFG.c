@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include "Node.h"
 
 CFGBlock_s NewBlock(uint32_t* id)

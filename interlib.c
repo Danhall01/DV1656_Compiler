@@ -49,7 +49,7 @@ static int32_t _ParseInstruction(const char* cmd,
 
     if (strcmp(cmd, "iload") == 0)
     {
-        int32_t n = atoi(rhs);
+        int32_t n = atoi(rhs + 1);
         Push(&stack, variables->arr[n]);
         return 0;
     }
@@ -63,7 +63,7 @@ static int32_t _ParseInstruction(const char* cmd,
 
     else if (strcmp(cmd, "istore") == 0)
     {
-        int32_t var = atoi(rhs);
+        int32_t var = atoi(rhs + 1);
         v1          = Pop(&stack);
         Insert(&variables, var, v1);
         return 0;
@@ -137,8 +137,8 @@ static int32_t _ParseInstruction(const char* cmd,
     else if (strcmp(cmd, "iffalse") == 0)
     {
         int32_t i = atoi(_SplitStr(rhs, ' '));
-        printf("TEST: i = %d\n", i);
-        fseek(bytecode, i, SEEK_SET);
+        if (!Pop(&stack))
+            fseek(bytecode, i, SEEK_SET);
         return 0;
     }
     else if (strcmp(cmd, "invokevirtual") == 0)
