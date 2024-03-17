@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 uint32_t LabelsCap;
 long* Labels;
@@ -72,18 +73,17 @@ uint32_t VarIndex(const char* var, SymbolTable_s* ST)
     if (strncmp(var, "__t", 3) == 0)
     {
         index = atoi(var + 3);
+        while(index >= TempVarCap)
+        {
+            uint32_t* temp = malloc(sizeof(uint32_t) * TempVarCap * 2);
+            memset(temp + sizeof(uint32_t) * TempVarCap, 0xff, sizeof(uint32_t) * TempVarCap);
+            memcpy(temp, TempVariables, sizeof(uint32_t) * TempVarCap);
+            TempVarCap *= 2;
+            TempVariables = temp;
+        }
 
         if (TempVariables[index] == 0xffffffff)
         {
-            while(index >= TempVarCap)
-            {
-                uint32_t* temp = malloc(sizeof(uint32_t*) * TempVarCap * 2);
-                memset(temp + sizeof(uint32_t*) * TempVarCap, 0xff, sizeof(uint32_t*) * TempVarCap);
-                memcpy(temp, TempVariables, sizeof(uint32_t*) * TempVarCap);
-                TempVarCap *= 2;
-                TempVariables = temp;
-            }
-
             if (VarCount == 0xffffffff)
             {
                 fprintf(stderr, "Error! code generation overflow variable count.\n");
@@ -156,7 +156,7 @@ int TranslateInput(const char* exp, SymbolTable_s* ST, int64_t* translated)
 #define LOAD(exp) WriteInstruction(file, "%s%ld\n", TranslateInput(exp, ST, &translated) ? "iload #" : "iconst ", translated)
 #define STORE(exp) if (strcmp(exp, "") != 0) WriteInstruction(file, "istore #%lu\n", VarIndex(exp, ST))
 
-#define SIMPLEEXPRESSION(op) {             \
+#define SIMPLEEXPRESSION(op) {          \
     LOAD(tac->src1);                    \
     LOAD(tac->src2);                    \
     WriteLine(op, strlen(op), file);    \
@@ -204,13 +204,13 @@ void TranslateInstruction(FILE* file, TAC_s* tac, SymbolTable_s* ST, CFG_s* CFG,
     case equalTac:
         LOAD(tac->src1);
         LOAD(tac->src2);
-        WriteLine("isub\n", 4, file);
-        WriteLine("inot\n", 4, file);
+        WriteLine("isub\n", 5, file);
+        WriteLine("inot\n", 5, file);
         STORE(tac->dst);
         break;
     case negTac:
         LOAD(tac->src1);
-        WriteLine("inot\n", 4, file);
+        WriteLine("inot\n", 5, file);
         STORE(tac->dst);
         break;
 
@@ -322,7 +322,7 @@ void CFGParse(FILE* file, const char* className, const char* methodName, CFGBloc
     Record_u* scope = ST->currentScope;
     for (uint32_t i = 0; i < scope->Entry.subScope[0].Meta.paramc; i++)
     {
-        WriteInstruction(file, "istore #%lu\n", VarIndex(scope->Entry.subScope[1 + i].Entry.name, ST));
+        WriteInstruction(file, "istore #%lu\n", VarIndex(scope->Entry.subScope[scope->Entry.subScope[0].Meta.paramc - i].Entry.name, ST));
     }
 
     RecCFGTraverse(file, method, ST, CFG, className, 1);
@@ -340,8 +340,8 @@ int GenerateJavaBytecode(const char* savePath, CFG_s* CFG, SymbolTable_s* ST)
     char* saveptr;
 
     TempVarCap = 10;
-    TempVariables = malloc(sizeof(uint32_t*) * TempVarCap);
-    memset(TempVariables, 0xff, sizeof(uint32_t*) * TempVarCap);
+    TempVariables = malloc(sizeof(uint32_t) * TempVarCap);
+    memset(TempVariables, 0xff, sizeof(uint32_t) * TempVarCap);
 
     BufCap = 50;
     Buf = malloc(BufCap);
