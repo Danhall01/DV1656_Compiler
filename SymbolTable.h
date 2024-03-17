@@ -31,6 +31,7 @@ typedef union Record
         int32_t       colno;
         union Record* subScope;
         int32_t       id;
+        uint32_t      varIndex;
     } Entry;
 } Record_u;
 

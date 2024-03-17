@@ -82,3 +82,5 @@ typedef struct Node Node_s;
 CFG_s GenerateControlFlowGraphs(Node_s* AST);
 
 void CFGGenerateVisualization(CFG_s CFG[static 1]);
+
+void CFGResetVisited(CFG_s CFG[static 1]);

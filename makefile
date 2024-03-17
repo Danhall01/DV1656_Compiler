@@ -1,5 +1,5 @@
 # Write the name of the compile target here, will be used in "make run"
-override COMPILE_TARGET ?= test.java
+override COMPILE_TARGET ?= test_files/assignment3_valid/A.java
 
 
 VERSION = std=c2x
@@ -16,8 +16,8 @@ ST_TARGET = st
 CFG_TARGET = cfg
 APP_NAME = compiler
 
-all: compile lex.o symboltable.o cfg.o node.o parser.o semantic.o main.o
-	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o SymbolTable.o CFG.o Semantic.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)
+all: compile lex.o symboltable.o cfg.o node.o parser.o semantic.o bytecodegeneration.o main.o
+	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o BytecodeGeneration.o SymbolTable.o CFG.o Semantic.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)
 
 compile: lex lex.yy.c bison $(BISON_TARGET).tab.c
 
@@ -35,6 +35,8 @@ semantic.o:
 	clang -c $(COMPILE_FLAGS) Semantic.c $(COMPILE_FLAGS_EXTRA)
 cfg.o:
 	clang -c $(COMPILE_FLAGS) CFG.c $(COMPILE_FLAGS_EXTRA)
+bytecodegeneration.o:
+	clang -c $(COMPILE_FLAGS) BytecodeGeneration.c $(COMPILE_FLAGS_EXTRA)
 
 lex:
 	flex $(LEX_TARGET)

@@ -7,6 +7,7 @@
 #include "Node.h"
 #include "SymbolTable.h"
 #include "CFG.h"
+#include "BytecodeGeneration.h"
 
 extern FILE* yyin;
 
@@ -44,7 +45,12 @@ int main(int argc, char** argv)
 
     CFG_s CFG = GenerateControlFlowGraphs(root);
     if (GENERATE_CONTROL_FLOW_GRAPH_TREE == 1)
+    {
         CFGGenerateVisualization(&CFG);
+        CFGResetVisited(&CFG);
+    }
+
+    GenerateJavaBytecode("program.runnable", &CFG, &ST);
 
     fclose(yyin);
     return 0;
