@@ -263,6 +263,8 @@ void TranslateInstruction(FILE* file, TAC_s* tac, SymbolTable_s* ST, CFG_s* CFG,
         free(blockName);
         fprintf(stderr,"Error! missing function called\n");
         exit(1);
+    default:
+        break;
     }
 }
 
