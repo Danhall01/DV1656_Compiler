@@ -532,9 +532,9 @@ void CFGGenerateVisualization(CFG_s CFG[static 1])
 void RecResetVisited(CFGBlock_s block[static 1])
 {
     block->visited = 0;
-    if (block->trueExit != NULL)
+    if (block->trueExit != NULL && (block->trueExit->visited == 1))
         RecResetVisited(block->trueExit);
-    if (block->falseExit != NULL)
+    if (block->falseExit != NULL && (block->falseExit->visited == 1))
         RecResetVisited(block->falseExit);
 }
 void CFGResetVisited(CFG_s CFG[static 1])
