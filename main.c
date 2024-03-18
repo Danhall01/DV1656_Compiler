@@ -32,16 +32,17 @@ int main(int argc, char** argv)
 
     if (GENERATE_PARSER_TREE == 1)
         generateTree(root);
-    
+
     SymbolTable_s ST = GenerateSymboltable(root);
     if (GENERATE_SYMBOL_TABLE_TREE == 1)
         STGenerateVisualization(&ST);
-    
+
     if (SemanticAnalysis(root, &ST) != 0)
     {
         fclose(yyin);
         return 0;
     }
+    printf("Semantic Done.\n");
 
     CFG_s CFG = GenerateControlFlowGraphs(root);
     if (GENERATE_CONTROL_FLOW_GRAPH_TREE == 1)
@@ -50,7 +51,8 @@ int main(int argc, char** argv)
         CFGResetVisited(&CFG);
     }
 
-    GenerateJavaBytecode("program.runnable", &CFG, &ST);
+    const char* output = argc > 2 ? argv[2] : "program.runnable";
+    GenerateJavaBytecode(output, &CFG, &ST);
 
     fclose(yyin);
     return 0;

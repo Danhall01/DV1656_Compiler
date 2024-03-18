@@ -1,5 +1,5 @@
 # Write the name of the compile target here, will be used in "make run"
-override COMPILE_TARGET ?= test_files/assignment3_valid/E.java
+override COMPILE_TARGET ?= test_files/assignment3_valid/A.java
 
 
 VERSION = std=c2x
@@ -14,14 +14,16 @@ BISON_TARGET = parser
 TREE_TARGET = tree
 ST_TARGET = st
 CFG_TARGET = cfg
-APP_NAME = compiler
+APP_NAME = compiler.out
+OUTPUT_FNAME = program.bc
+INTERPRETER_NAME = interpreter.out
 
 all: compile lex.o symboltable.o cfg.o node.o parser.o semantic.o bytecodegeneration.o main.o
 	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o BytecodeGeneration.o SymbolTable.o CFG.o Semantic.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)
 
 
 interpreter: interpreter.o interlib.o
-	clang $(COMPILE_FLAGS) -o interpreter interpreter.o interlib.o $(COMPILE_FLAGS_EXTRA)
+	clang $(COMPILE_FLAGS) -o $(INTERPRETER_NAME) interpreter.o interlib.o $(COMPILE_FLAGS_EXTRA)
 
 interpreter.o: interpreter.c
 	clang -c $(COMPILE_FLAGS) interpreter.c $(COMPILE_FLAGS_EXTRA)
@@ -55,13 +57,13 @@ lex:
 bison:
 	bison $(BISON_TARGET).y
 
-tree: run
+tree:
 	dot -Tpdf $(TREE_TARGET).dot -o$(TREE_TARGET).pdf
 
-st: run
+st:
 	dot -Tpdf $(ST_TARGET).dot -o$(ST_TARGET).pdf
 
-cfg: run
+cfg:
 	dot -Tpdf $(CFG_TARGET).dot -o$(CFG_TARGET).pdf
 
 format:
@@ -70,7 +72,9 @@ format:
 tidy:
 	clang-tidy $(wildcard *.c) -checks=$(TIDY_FLAGS)
 
-run: all
-	./$(APP_NAME) $(COMPILE_TARGET)
+run: clean all interpreter
+	./$(APP_NAME) $(COMPILE_TARGET) $(OUTPUT_FNAME)
+	./$(INTERPRETER_NAME) $(OUTPUT_FNAME)
+
 clean:
-	rm *.o $(BISON_TARGET).tab.c $(BISON_TARGET).tab.h lex.yy.c $(APP_NAME) tree.dot tree.pdf st.dot st.pdf cfg.dot cfg.pdf interpreter
+	-rm *.o $(BISON_TARGET).tab.c $(BISON_TARGET).tab.h lex.yy.c $(APP_NAME) $(OUTPUT_FNAME) $(INTERPRETER_NAME) tree.dot tree.pdf st.dot st.pdf cfg.dot cfg.pdf interpreter
