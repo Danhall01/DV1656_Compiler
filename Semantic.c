@@ -165,7 +165,7 @@ static int32_t IsVariable(Node_s node[static 1])
     if (node->value[0] == '\0')
         return 1;
 
-    if (node->value[0] >= '0' && node->value[0] <= '9')
+    if ((node->value[0] >= '0' && node->value[0] <= '9') || node->value[0] == '-')
         return 2;
 
     if (strcmp(node->type, "RETURN TYPE") == 0)
@@ -419,12 +419,14 @@ static int32_t EvaluateReturnType(SymbolTable_s st[static 1], Node_s method[stat
 {
     const char* lhs = method->children[0]->value;
     const char* rhs = NULL;
+    if (lhs == NULL)
+        return -1;
 
     if (strcmp(method->children[method->size - 1]->type, "RETURN EXPRESSION") == 0
         && method->children[method->size - 1]->size > 0)
     {
         if (strcmp(lhs, "VOID") == 0)
-            return 1;
+            return -1;
         // printf("================\n");
         // printf("LHS: %s\n", lhs);
 
@@ -435,13 +437,14 @@ static int32_t EvaluateReturnType(SymbolTable_s st[static 1], Node_s method[stat
         STSetScope(st, oldScope);
         // printf("RHS: %s\n", rhs);
 
-        if (lhs && rhs)
-            return strcmp(lhs, rhs);
+        if (!rhs)
+            return -1;
+        return strcmp(lhs, rhs) == 0 ? 0 : 1;
     }
     if (strcmp(lhs, "VOID") == 0)
         return 0;
 
-    return 1;
+    return -1;
 }
 // =================================================================
 
@@ -602,8 +605,8 @@ static int32_t ValidateTypes(Node_s node[static 1], SymbolTable_s st[static 1])
         return TREE_STOP;
     }
     // Only check left child
-    if (strcmp(node->type, "IF STATEMENT CLOSED") == 0 && InErrLines(node->lineno) != 0
-        && EvaluateExpressionBranched(st, node) != 0)
+    if ((strcmp(node->type, "IF STATEMENT CLOSED") == 0 || strcmp(node->type, "WHILE LOOP") == 0)
+        && InErrLines(node->lineno) != 0 && EvaluateExpressionBranched(st, node) != 0)
     {
         fprintf(stderr,
                 ERROR_FORMAT "(Semantic), Invalid branch condition, line %d, col %d\n",
@@ -614,19 +617,16 @@ static int32_t ValidateTypes(Node_s node[static 1], SymbolTable_s st[static 1])
         return TREE_STOP;
         return TREE_CONTINUE;
     }
-    // WHILE COMMAND
 
     // Invalid Return Type
-    if (strcmp(node->type, "METHOD DECLARATION") == 0 && EvaluateReturnType(st, node) != 0)
+    int32_t retType = 0;
+    if (strcmp(node->type, "METHOD DECLARATION") == 0
+        && (retType = EvaluateReturnType(st, node)) != 0)
     {
         int32_t line = node->lineno;
         int32_t col  = node->colno;
 
-        Record_u* oldScope = STCurrentScope(st);
-        STEnterScope(st, node->value);
-        Record_u* localVar = STLookUp(st, node->children[node->size - 1]->children[0]->value, NULL);
-
-        if (localVar != NULL)
+        if (retType < 0)
         {
             line = node->children[node->size - 1]->lineno - 1;
             col  = node->children[node->size - 1]->colno;
@@ -637,7 +637,6 @@ static int32_t ValidateTypes(Node_s node[static 1], SymbolTable_s st[static 1])
                 line,
                 col);
         ++s_errCount;
-        STSetScope(st, oldScope);
         return TREE_CONTINUE;
     }
     return TREE_CONTINUE;
