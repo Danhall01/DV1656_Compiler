@@ -305,6 +305,7 @@ void RecCFGTraverse(FILE* file, CFGBlock_s* block, SymbolTable_s* ST, CFG_s* CFG
 void CFGParse(FILE* file, const char* className, const char* methodName, CFGBlock_s* method, SymbolTable_s* ST, CFG_s* CFG)
 {
     VarCount = 0;
+    memset(TempVariables, 0xff, sizeof(uint32_t) * TempVarCap);
     RegisterLabel(method->identifier, ftell(file));
 
     STResetScope(ST);
@@ -341,7 +342,6 @@ int GenerateJavaBytecode(const char* savePath, CFG_s* CFG, SymbolTable_s* ST)
 
     TempVarCap = 10;
     TempVariables = malloc(sizeof(uint32_t) * TempVarCap);
-    memset(TempVariables, 0xff, sizeof(uint32_t) * TempVarCap);
 
     BufCap = 50;
     Buf = malloc(BufCap);

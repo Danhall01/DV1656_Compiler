@@ -1,5 +1,5 @@
 # Write the name of the compile target here, will be used in "make run"
-override COMPILE_TARGET ?= test_files/assignment3_valid/A.java
+override COMPILE_TARGET ?= test_files/valid/SemanticValidMethodCall.java
 
 
 VERSION = std=c2x
@@ -14,9 +14,9 @@ BISON_TARGET = parser
 TREE_TARGET = tree
 ST_TARGET = st
 CFG_TARGET = cfg
-APP_NAME = compiler.out
+APP_NAME = compiler
 OUTPUT_FNAME = program.bc
-INTERPRETER_NAME = interpreter.out
+INTERPRETER_NAME = interpreter
 
 all: compile lex.o symboltable.o cfg.o node.o parser.o semantic.o bytecodegeneration.o main.o
 	clang $(COMPILE_FLAGS) -o $(APP_NAME) main.o BytecodeGeneration.o SymbolTable.o CFG.o Semantic.o lex.yy.o Node.o $(BISON_TARGET).tab.o $(COMPILE_FLAGS_EXTRA)

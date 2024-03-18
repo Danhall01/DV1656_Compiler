@@ -172,6 +172,9 @@ const char* RecGenerateGraph(CFGBlock_s* block[static 1], Node_s AST[static 1], 
         return "";
 
     case whileTac:
+        (*block)->trueExit = malloc(sizeof(CFGBlock_s));
+        *((*block)->trueExit) = NewBlock(id);
+        *block = (*block)->trueExit;
         savedBlock = *block;
         temp = RecGenerateGraph(block, AST->children[0], id);
         if(strncmp(temp, "__t", 3) == 0)
